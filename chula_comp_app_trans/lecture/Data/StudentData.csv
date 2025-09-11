@@ -1,0 +1,18 @@
+﻿Date          ,Instructor  ,Student  ,Sex     ,County      ,Education  ,Ed.code
+1/11/19,Arthur,a        ,female  ,North     ,BA         ,3
+1/11/19,Arthur,b        ,female  ,South  ,PHD        ,5
+1/11/19,Arthur,c        ,male    ,North     ,BA         ,3
+1/11/19,Arthur,d        ,female  ,North     ,MA         ,4
+1/11/19,Arthur,e        ,male    ,North     ,HS         ,1
+1/11/19,Arthur,f        ,female  ,South  ,MA         ,4
+1/11/19,Arthur,g        ,male    ,North     ,HS         ,1
+1/11/19,Arthur,h        ,female  ,North     ,BA         ,3
+1/11/19,Arthur,i        ,female  ,North     ,BA         ,3
+1/11/19,Arthur,j        ,female  ,North     ,BA         ,3
+1/12/19,Buster,k        ,male    ,North     ,MA         ,4
+1/12/19,Buster,l        ,male    ,South  ,MA         ,4
+1/12/19,Buster,m        ,female  ,North     ,AA         ,2
+1/12/19,Buster,n       ,male    ,North     ,AA         ,2
+1/12/19,Buster,o        ,other   ,North     ,BA         ,3
+1/12/19,Buster,p        ,female  ,North     ,BA         ,3
+1/12/19,Buster,q        ,female  ,South  ,PHD        ,5

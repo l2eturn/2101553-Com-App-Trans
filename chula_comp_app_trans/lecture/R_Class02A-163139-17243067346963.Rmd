@@ -37,9 +37,10 @@ To read a CSV data file within a sub-folder `Data` under the working directory
 # Check current working directory  
 getwd()
 # Set working directory
-
+setwd("C:/Users/Terxzera/Desktop/CUCE_CAT/chula_comp_app_trans/lecture")
 # Call required packages, ex. "readxl", "tidyverse"
-
+install.packages("readxl")
+install.packages("tidyverse")
 ```
 
 ## ==== Read Data in R ====
@@ -47,9 +48,10 @@ getwd()
 ### Read CSV (Comma Separated Value) file
 
 ```{r Read CSV file}
+library(readr) 
 # Read CSV file "RenSteve.csv" with `read_csv`
-ClassData <- 
-# Use `spec()` to retrieve the full column specification for this data
+ClassData <- read.csv("RenSteve.csv")
+# Use `spec()` to retrieve the full column specification for this data()
 spec(ClassData)
 # Read CSV file with `read.csv` and `read.table`
 ClassData2 <- 
