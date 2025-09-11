@@ -1,0 +1,501 @@
+---
+title: 'Exercise 2: Data Transformation with Base R'
+output: html_document
+date: "2025-08-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+With base R, data manipulation tasks can be performed without relying on external packages, offering a robust set of tools to work with data sets efficiently, allowing various operations such as data selection, filtering, transformation and summarization.
+
+# Row and column names
+
+The `rownames` and `colnames` functions allow you to get and set row and column names for matrix-like objects, such as data frames or matrices. The `dimnames` is similar, as it allows you to retrieve or set both the column and row names of an object.
+
+## Get and set row names with `rownames`
+
+The `rownames` function allows you to **retrieve the row names of a data frame or matrix**. The syntax of the function is the following:
+
+```         
+Syntax
+# Get row names
+rownames(x)
+
+# Set row names to "value" (usually a vector or NULL)
+rownames(x) <- value
+```
+
+You can **check the default row names** with the `rownames` function. Nonetheless, the `rownames` function **can also be used to set the row names**. For that purpose, you will need to assign the row names a vector with as many elements as rows.
+
+```{r Get and set row names with rownames, warning=FALSE}
+
+df_data <- data.frame(col1 = 1:10, col2 = 11:20)
+df_data
+
+# Check the default row names of my_df
+rownames(df_data)
+
+# Set the row names to my_df with a character vector with elements "Row_X" 
+# Hint: use the "paste" function to concatenate vectors after converting to character.
+rownames(df_data) <- paste("Row_",1:10,sep = '')
+df_data
+# Print out "Jan is the 1st month of the year." to "Dec is the 12th month of the year."
+aa <- paste(1:12, c("st","nd","rd",rep("th",9)),sep = '')
+paste(month.abb,"is the",aa,"month of the year")
+
+```
+
+## Get and set column names with `colnames`
+
+The `colnames` function behaves the same as `rownames` but for column names. The syntax is as follows:
+
+```         
+Syntax
+# Get column names
+colnames(x)
+
+# Set column names to "value" (usually a vector or NULL)
+colnames(x) <- value
+```
+
+If you want to check the column names of your object you just need to input the name of your object to the function. You can also customize the column names of your object by assigning a new values to the column names.
+
+```{r Get and set column names with colnames, warning=FALSE}
+
+# Check the column names of df_data 
+colnames(df_data)
+
+# Change the column names of my_df to "Column_1" and "Column_2"
+colnames(df_data) <- c("Colum_1","Colum_2")
+
+# Add the third column to my_df with the elements 21:30 and set its column name to "Column_3" 
+df_data <- cbind(df_data,Colum_3 = 21:30)
+df_data
+```
+
+## Remove column and row names
+
+Sometimes you just want to remove the column and/or row names of your matrix or data frame. For that purpose you will need to assign the columns and/or rows to `NULL`.
+
+```{r Remove column and row names, warning=FALSE}
+
+# Remove row names of df_data
+rownames(df_data) <- NULL
+
+
+# Remove column names of df_data
+colnames(df_data) <- NULL
+
+# Check row names and column names of data frame df_data
+
+
+```
+
+# Subset
+
+Subsetting data consists on obtaining a subsample of the original data, in order to obtain specific elements based on some condition. In this tutorial you will learn in detail **how to make a subset in R** in the most common scenarios, explained with several examples.
+
+## Single and double square brackets
+
+Before the explanations for each case, it is worth to mention the **difference between using single and double square brackets** when subsetting data in R.
+
+The difference is that **single square brackets will maintain the original input structure** but the **double will simplify it** as much as possible.
+
+Other interesting characteristic is when you try to **access observations out of the bounds** of the vector. In this case, if you use **single square brackets** you will obtain a `NA` value but **an error with double brackets**.
+
+```{r Single and double square brackets, warning=FALSE}
+
+x <- c(one = 1, two = 2)
+x
+# Single square brackets = Maintains the name of the element
+x[1]
+
+# Double square brackets = Simplified output
+x[[1]]
+
+# Access observations out of the bounds 
+# Single square brackets
+x[6]
+
+# Double square brackets
+x[[6]]
+# Error in x[[6]] : subscript out of bounds
+
+```
+
+Note that when subsetting gives no observations means that you are trying to subset under some condition that never meets.
+
+## Subset function
+
+The `subset` function allows **conditional subsetting in R** for vector-like objects, matrices and data frames.
+
+```         
+Syntax
+
+# For vectors
+subset(x,             # Numeric vector
+       condition)     # Logical condition/s
+
+# For matrices and dataframes
+subset(x,             # Numeric vector
+       condition,     # Logical condition/s
+       select,        # Selected columns
+       drop = FALSE)  # Whether to maintain the object structure (default) or not
+```
+
+Note that this function allows you to subset by one or multiple conditions.
+
+### Subset vector
+
+Subsetting a variable stored in a vector can be achieved in several ways:
+
+1.  Selecting the **indices** you want to display. If more than one, select them using the `c` function.
+
+2.  If you want to select all the values except one or some, make a subset indicating the index with negative sign.
+
+3.  Using **boolean indices** to indicate if a value must be selected (`TRUE`) or not (`FALSE`).
+
+4.  Using **logical operators** with the `subset` function.
+
+```{r Subset vector, warning=FALSE}
+
+my_vector <- c(15, 21, 17, 25, 12, 51)
+
+# Second and fifth elements
+my_vector[2];
+my_vector[5];
+rep(my_vector[2],2)
+
+# Second element twice
+rep(my_vector[2],2)
+
+# All values except the fourth and fifth
+my_vector[c(-4,-5)]
+
+# First, third, fourth and sixth values using boolean indices 
+my_vector[c(T,F,T,T,F,T)]
+
+# Elements greater than 15
+my_vector[my_vector > 15]
+
+# Use the 'subset' function
+subset(my_vector, my_vector > 15 & my_vector < 22)
+
+# Assign the same value "1" to all the elements of my_vector
+
+my_vector[] <- 1
+my_vector 
+```
+
+### Subset columns of data frame
+
+Subsetting a data frame to obtain some rows or columns of the full data frame, or some that meet one or several conditions. It is very usual to subset a data frame for analysis purposes.
+
+You can **subset a column** in different ways:
+
+1.  If you want to subset just one column, you can use single or double square brackets to specify the index or the name (between quotes) of the column.
+
+2.  Specifying the indices after a comma (leaving the first argument blank selects all rows of the data frame). In this case you can’t use double square brackets, but use `drop` argument.
+
+3.  In case of subsetting multiple columns of a data frame just indicate the columns inside a vector.
+
+When subsetting more than one column or when specifying rows and columns (using a comma inside brackets) you will need to set **`drop = FALSE`** to maintain the original structure of the object, instead of using double square brackets.
+
+Subsetting dataframe [using column nam**e**]{.underline}can also be achieved using the dollar sign (`$`), specifying the name of the column *with or without quotes*.
+
+```{r Subset columns of data frame, warning=FALSE}
+
+set.seed(24)
+my_df <- data.frame(x = 1:10,
+                    y = 11:20,
+                    z = 3:12,
+                    w = sample(c("Group 1", "Group 2"), 10, replace = TRUE))
+head(my_df)
+
+# Select the second column and simplify as vector
+my_df[[2]]
+my_df[, 2]   # Equivalent
+my_df[["y"]] # Equivalent
+my_df[, c(FALSE, TRUE, FALSE, FALSE)] # Equivalent
+
+# Select the second column with column and row names
+my_df[2]
+my_df[, 2, drop = FALSE] # Equivalent
+my_df["y"]               # Equivalent
+my_df[c(FALSE, TRUE, FALSE, FALSE)] # Equivalent
+
+# Select the first and third column
+
+
+# Use the dollar sign ($) to select the column 'y' and 'w'
+
+
+```
+
+### Subset rows of data frame
+
+Analogously to column subset, you can subset rows of a data frame indicating the indices you want to subset as the first argument between square brackets.
+
+In case you want to subset rows based on a predetermined vector you can use the `%in%` operator or the `is.element` function.
+
+You can also apply a **conditional subset** with the `subset` function. Note that when using this function you can use the variable names directly. When using the `subset` function with a data frame you can also **specify the columns you want to be returned**, indicating them in the `select` argument.
+
+```{r Subset rows of data frame, warning=FALSE}
+
+my_values <- c(12, 14, 16)
+
+# Select the fourth, sixth and ninth rows of my_df
+
+
+# Subset rows of my_df based on my_values
+
+
+# Select the opposite of the above result
+
+
+# Values where column z is greater than 5
+
+
+# All values corresponding to Group 1
+
+
+# Select all values where 'y' is lower or equal to 14
+# and return only the columns "y" and "w"
+
+
+# Use multiple subset conditions to select samples where
+# 'y' is larger than 6 and the group of the 'w' column is Group 2.
+
+
+```
+
+### Subset by date
+
+Many data frames have a column of dates. In this case, each row represents a date and each column an event registered on those dates. For this purpose, you need to transform that column of dates with the `as.Date` function to convert the column to date format.
+
+```{r Subset by date, warning=FALSE}
+
+dates <- seq(as.Date("2025/8/1"), by = "day", length.out = 10)
+
+my_df_dates <- cbind(dates, my_df)
+head(my_df_dates)
+
+# Subset the samples corresponding to dates greater than August, 5, 2025
+
+
+```
+
+# The `split` function
+
+The `split` function allows **dividing data in groups based on factor levels**. The `split` function divides the input data (`x`) in different groups (`f`). The following block summarizes the function arguments and its description.
+
+```         
+Syntaxsplit(x,                 # Vector or data frame
+      f,                 # Groups of class factor, vector or list
+      drop = FALSE,      # Whether to drop unused levels or not
+      sep = ".",         # Character string to separate groups when f is a list
+      lex.order = FALSE, # Whether the factor concatenation should be lexically ordered or not
+      ...)               # Additional arguments
+```
+
+## Split vector
+
+Suppose you have a named vector, where the name of each element corresponds to the group the element belongs. Hence, you can split the vector into several vectors where the elements are of the same group, passing the names of the vector with the `names` function to the argument `f`.
+
+In addition, you can pass a character vector as parameter of the argument `f` to indicate the corresponding groups of each element, or directly a factor object.
+
+Moreover, you can split your data by multiple groups, generating interactions of groups. For that purpose, the input of the argument `f` must be a list.
+
+Note that, by default, the **group interactions are separated with a dot** and that the **output contains all possible groups even when there are no observations** in some of them. However, you can customize this with the `sep` and `drop` arguments, respectively.
+
+It should be noted that with the `unsplit` function you can recover the original vector, but the names will be lost.
+
+```{r Split vector, warning=FALSE}
+
+a <- c(x = 3, y = 5, x = 1, x = 4, y = 3)
+a
+
+# Split the vector 'a' into 2 vectors
+
+
+my_groups <- c("Group 1", "Group 1", "Group 2", "Group 1", "Group 2")
+
+# Split the vector 'a' using the vecter 'my_groups'
+
+
+# New group
+my_groups2 <- c("Type 1", "Type 1", "Type 1", "Type 2", "Type 1")
+
+# Split the vector "a" by two groups
+
+
+# Remove the empty elements and change the separator to ":"
+
+
+# Unsplit 'vec_split' to recover the original vector
+
+
+```
+
+## Split data frame
+
+You can split a data set in subsets based on one or more variables that represents groups of the data.
+
+As we explained in the vectors section, you can divide a data frame in subsets that meet different combinations of groups at the same time. Note that the total number of splits is the multiplication of the number of levels of each group.
+
+Finally, you can recover the original data frame with the `unsplit` function, passing the divided data frame and the group or groups you used to create the split.
+
+```{r Split data frame, warning=FALSE}
+
+set.seed(123)
+data(CO2)
+
+my_df2 <- CO2[sample(1:nrow(CO2), 10), ]
+my_df2
+
+# Use the split function to split the data frame in groups based on the "Treatment" variable
+
+
+# Create the split of the sample data frame with Type and Treatment columns.
+
+
+# Recover the original data frame with the unsplit function
+
+
+```
+
+# Categorize numerical data with `cut`
+
+The `cut` function in R allows you to cut data into bins and specify ‘cut labels’, so it is very useful to create a **factor** from a continuous variable.
+
+Sometimes it is useful to **categorize the values of a continuous variable** in different levels of a factor. For that purpose, you can use the R `cut` function. In the following block of code, we show the syntax of the function and the simplified description of the arguments.
+
+```         
+Syntax
+
+cut(num_vector,              # Numeric input vector
+    breaks,                  # Number or vector of breaks
+    labels = NULL,           # Labels for each group
+    include.lowest = FALSE,  # Whether to include the lowest 'break' or not
+    right = TRUE,            # Whether the right interval is closed (and the left open) or vice versa
+    dig.lab = 3,             # Number of digits of the groups if labels = NULL
+    ordered_result = FALSE,  # Whether to order the factor result or not
+    …)                       # Additional arguments
+```
+
+## The `breaks` argument
+
+The `breaks` argument allows you to cut the data in bins and hence to categorize it.
+
+On the one hand, you can set the `breaks` argument to any integer number, creating as many intervals (levels) as the specified number. These intervals will be all of the same length. On the other hand, you can specify the intervals you prefer.
+
+It is worth to mention that if the intervals have decimals you can modify the number of decimals with the `dig.lab` argument and decide whether to order the results or not with the `ordered_result` argument.
+
+### The argument `right`
+
+By default, the argument `right` is set to `TRUE`, so the intervals are opened on the left and closed on the right (x, y]. Consider, for instance, you want to categorize some data in the following categories:
+
+-   Low, if x ∈ [0, 150).
+
+-   Medium, if x ∈ [150, 200).
+
+-   High, if x ∈ [200, ∞ ).
+
+However, if you set `right = FALSE`, the intervals will be closed on the left and open on the right.
+
+-   Low, if x ∈ (0, 150].
+
+-   Medium, if x ∈ (150, 200].
+
+-   High, if x ∈ (200, ∞ ).
+
+### Include lowest value
+
+The `include.lowest` argument specify whether to include the lowest break or not. By default, it is set to `FALSE`.
+
+In case that the lowest value is not included in the interval (the left interval is open) and the value is categorized as `NA`, because the lowest value does not belong to any of the intervals. If you set `include.lowest` to `TRUE`, the value will be included, as the left interval of the lowest break will be closed.
+
+**Note:** Changing arguments **`right`** and **`include.lowest`** can lead to mistakes, so we recommend changing the values of the **`breaks`** argument instead of the others.
+
+```{r The breaks argument in cut function, warning=FALSE}
+
+# Sample data
+my_sampleX <- -5:5
+range(my_sampleX)
+
+# Cut the range of sample into 2 intervals (categories) with the same length
+
+
+# Cut the range of sample into 2 intervals: (-6,2] (2,5]
+
+
+# Cut the range of sample into 2 intervals: [-5,2) [2,6)
+
+
+# Cut the range of sample into 2 intervals: [-5,2] (2,5]
+
+
+```
+
+## The `labels` argument
+
+You can also change the labels of the output factor with the `labels` argument.
+
+```{r The labels argument in cut function, warning=FALSE}
+
+my_sampleY <- c(12, 1, 25, 12, 65, 2, 6, 17)
+
+# Cut the range of sample into 5 intervals with the break points
+# 0, 3, 12, 15, 20, 80
+# and change the labels of the output factor to 
+# "First", "Second", "Third", "Fourth", "Fifth", respectively
+
+
+# Crate the data frame showing the original values and categorized intervals
+
+
+```
+
+## Exercise: Categorize age groups
+
+Categorize a numeric vector of ages in the following categories:
+
+-   0-14: Children.
+
+-   15-24: Youth.
+
+-   25-64: Adult.
+
+-   65 and over: Senior.
+
+```{r Categorize age groups, warning=FALSE}
+
+# Sample data
+age <- c(0, 12, 89, 14, 25, 2, 65, 1, 16, 24, 67, 61, 64)
+
+# Solution
+
+
+```
+
+## Exercise: Categorize exam scores
+
+Exam scores can be categorized as "fail", if the score is lower than 5 points out of 10, or "pass" in the other case.
+
+```{r Categorize exam scores, warning=FALSE}
+
+score <- c(6.1, 5.3, 8.9, 5.0, 8.8, 1.9, 6.6, 7.2, 9.4, 4.9,
+           7.1, 3.9, 1.0, 9.3, 9.9, 5.9, 5.1, 8.4, 3.2, 10.0)
+
+# Solution
+
+
+```
+
+Note that in the equivalent alternative we set `right = FALSE`, because if `TRUE`, a 5 would be fail instead of pass. However, when setting this argument to `FALSE`, the right interval is open, so a 10 won’t enter the interval and that is the reason because we set the third break as 10.1 instead of 10.
+
+End-of-File\
+Pongsun B.\
+2025-08-21

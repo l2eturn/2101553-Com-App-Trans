@@ -1,0 +1,229 @@
+---
+title: "Tidy data"
+output: html_document
+date: "2025-09-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+if(!require(tidyverse)){install.packages("tidyverse")}
+if(!require(palmerpenguins)){install.packages("palmerpenguins")}
+if(!require(gapminder)){install.packages("gapminder")}
+
+```
+
+# Tidy data
+
+When we talk about organizing data to help us work in an efficient, reproducible, and collaborative way, we are talking about TIDY DATA. We mean deliberately thinking about the shape and structure of data – something that might not seem super exciting but is truly game-changing.
+
+So let’s talk about what tidy data is and why it is so empowering for your analytical life.
+
+## What is tidy data?
+
+Tidy data is a way to describe data that’s organized with a particular structure – a rectangular structure, where
+
+-   each column is a variable
+
+-   each row is an observation
+
+-   each value has its own cell
+
+![](https://www.dropbox.com/scl/fi/pc6507q2zc7o2nc04mo6l/tidydata_1.jpg?rlkey=4i00lllsn4lgnwl0j9s6kinxp&dl=1)
+
+![](https://www.dropbox.com/scl/fi/rrmes16yjxsv3rin3o3fm/tidy-1.png?rlkey=7fmmjnw3g84sqt83qujl3sty6&dl=1)
+
+The example below shows the same data organised in four different ways. Each dataset shows the same values of four variables *country*, *year*, *population*, and *cases*, but each dataset organises the values in a different way.
+
+![](https://www.dropbox.com/scl/fi/qett6w5t4rwbbo5d80ckg/tidy-example.png?rlkey=7zbd5286kgl950d2s7v6eid18&dl=1){width="500"}
+
+In this example, only `table1` is tidy. It’s the only representation where each column is a variable.
+
+Why ensure that your data is tidy? There are two main advantages:
+
+1.  There’s a general advantage to picking one [consistent way of storing data]{.underline}. If you have a consistent data structure, it’s easier to learn the tools that work with it because they have an underlying uniformity.
+
+2.  There’s a specific advantage to placing variables in columns because it allows R’s vectorised nature to shine. As you learned in `mutate` and `summary` functions, most built-in R functions work with vectors of values. That makes transforming tidy data feel particularly natural.
+
+`dplyr`, `ggplot2`, and all the other packages in the tidyverse are designed to work with tidy data.
+
+Tidy data allows you to be more efficient by using existing tools deliberately built to do the things you need to do, from subsetting portions of your data to plotting maps of your study area. Using existing tools saves you from building from scratch each time you work with a new dataset (which can be time-consuming and demoralizing). And luckily, there are a lot of tools specifically built to wrangle untidy data into tidy data (for example, in the `tidyr` package). By being more equipped to wrangle your data into a tidy format, you can get to your analyses faster to start answering the questions you’re asking.
+
+Untidy data most often look like this:
+
+-   Column headers are values, not variable names.
+
+-   Multiple variables are stored in one column.
+
+-   Variables are stored in both rows and columns.
+
+-   Multiple types of observational units are stored in the same table.
+
+-   A single observational unit is stored in multiple tables.
+
+## Pivoting
+
+The principles of tidy data seem so obvious that you might wonder if you’ll ever encounter a dataset that isn’t tidy. Unfortunately, however, most data that you will encounter will be untidy. There are two main reasons:
+
+1.  Most people aren’t familiar with the principles of tidy data, and it’s hard to derive them yourself unless you spend a *lot* of time working with data.
+
+2.  Data is often organised to facilitate some use other than analysis. For example, data is often organised to make entry as easy as possible.
+
+This means for most real analyses, you’ll need to do some tidying. The first step is always to figure out what the variables and observations are. The second step is to resolve one of two common problems:
+
+1.  One variable might be spread across multiple columns.
+
+2.  One observation might be scattered across multiple rows.
+
+Typically a dataset will only suffer from one of these problems; it’ll only suffer from both if you’re really unlucky! To fix these problems, you’ll need the two most important functions in `tidyr`: [`pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html) and [`pivot_wider()`](https://tidyr.tidyverse.org/reference/pivot_wider.html).
+
+The gif below shows how these two formats—the “wide” form and The “long” form—relate to each other, and gives you an idea of how we can use R to shift from one format to the other.
+
+![](https://www.dropbox.com/scl/fi/l1icxb5usiorynoen5wi5/tidyr-pivot_wider_longer.gif?rlkey=pp6qkzzbuyg9i5qrlmcmduihh&dl=1)
+
+## An example
+
+Let’s create a pivot table cross-tab using the penguin data in the {palmerpenguins} data package.
+
+```{r The penguin data, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+head(penguins)
+summary(penguins)
+
+# Use group_by and summarise to create a summary table of the average bird weight by species. Note that we have to use na.rm = TRUE because of the presence of NA values in the variable body_mass_g.
+
+
+# Repeat the same process with species and island and save the result as the object named "penguin_species_island"
+
+
+```
+
+While this long tabular structure is useful for coding, it’s harder for you and I to compare across both the “species” and “island” dimensions. This is a situation where a "wide" structure is desirable.
+
+## `pivot_wider()`
+
+Let’s take the `penguin_species_island` table and arrange it so that there is a separate column (variable) for each island. Instead of a single “island” column, there will be multiple columns, one for each island, and with the average weight of the birds of each species on each.
+
+Note that this is **NOT** a tidy format! But is it one that is human-readable, and is often how data tables are published in reports.
+
+```{r pivot_wider, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+
+```
+
+Note that there are "NA" values introduced into the table. Chinstrap penguins were only recorded on Dream Island, and Gentoo penguins were only on Biscoe Island. "NA" values appear in the columns where there were no birds of that species row.
+
+## `pivot_longer()`
+
+Now we will pivot the new table back to the original structure. Note that the names of the new variables “island” and “mean_mass” need to be inside quotation marks.
+
+```{r pivot_longer, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+
+```
+
+*What do you notice about the structure of the unpivoted table?*
+
+The creation of the wider table introduced “NA” values where there was not an “island” category to match the “species” of penguin. In our new long table, those “NA” values have been retained.
+
+### **`spread()` and `gather()`**
+
+Note that [`pivot_wider()`](https://tidyr.tidyverse.org/reference/pivot_wider.html) and [`pivot_longer()`](https://tidyr.tidyverse.org/reference/pivot_longer.html) are relatively new functions, introduced in 2019.
+
+The older {tidyr} functions that do the same thing: [`spread()`](https://tidyr.tidyverse.org/reference/spread.html) and [`gather()`](https://tidyr.tidyverse.org/reference/gather.html). You may find older articles that use these functions, but the new ones are much better.
+
+## Exercise 1
+
+When you publish your tables, you might want a structure that violates the tidy principles—sometimes an untidy table is better for human consumption. The {gapminder} data, in its raw form, is tidy. For this exercise, create a table that shows [GDP per capita]{.underline} for
+
+-   the countries Canada, United States, and Mexico as the columns, and
+
+-   the years after 1980 as the rows
+
+```{r Exercise 1, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+head(gapminder)
+
+# Use the select() function.
+
+
+# Avoid the use of the select() function.
+
+
+# Show GDP per capita for the years after 1980 as the columns, and the countries "Canada, United States, and Mexico" and their continents as the rows
+
+
+# Create two separate tables with the same three countries, but one with GDP per capita as the values and the second with life expectancy
+
+
+```
+
+## Exercise 2
+
+The `tidyr::who` dataset contains tuberculosis (TB) cases broken down by year, country, age, gender, and diagnosis method. The data comes from the *2014 World Health Organization Global Tuberculosis Report*, available at <http://www.who.int/tb/country/data/download/en/>.
+
+This is a very typical real-life example dataset. It contains redundant columns, odd variable codes, and many missing values. In short, `who` is messy, and we’ll need multiple steps to tidy it.
+
+**Step 1:** Create the object named `df_who` by gathering together all the columns from `new_sp_m014` to `newrel_f65`. We don’t know what those values represent yet, so we’ll give them the generic name `key`. We know the cells represent the count of cases, so we’ll use the variable `cases`. There are a lot of missing values in the current representation, so for now we’ll use `values_drop_na` just so we can focus on the values that are present. (1 point)
+
+**Step 2:** The structure of the values in the new `key` column is as follows:
+
+1.  The first three letters of each column denote whether the column contains `new` or `old` cases of TB. In this dataset, each column contains only `new` cases.
+
+2.  The next two or three letters describe the type of TB:
+
+    -   `rel` stands for cases of relapse
+
+    -   `ep` stands for cases of extrapulmonary TB
+
+    -   `sn` stands for cases of pulmonary TB that could not be diagnosed by a pulmonary smear (smear negative)
+
+    -   `sp` stands for cases of pulmonary TB that could be diagnosed by a pulmonary smear (smear positive)
+
+3.  The sixth letter gives the sex of TB patients. The dataset groups cases by males (`m`) and females (`f`).
+
+4.  The remaining numbers gives the age group. The dataset groups cases into seven age groups:
+
+    -   `014` = 0 – 14 years old
+
+    -   `1524` = 15 – 24 years old
+
+    -   `2534` = 25 – 34 years old
+
+    -   `3544` = 35 – 44 years old
+
+    -   `4554` = 45 – 54 years old
+
+    -   `5564` = 55 – 64 years old
+
+    -   `65` = 65 or older
+
+Get some hint of the structure of the values in the new `key` column by counting them. Then, use `str_replace()` to replace the characters “newrel” with “new_rel”. (1 point)
+
+**Step 3:** Split the codes at each underscore. (1 point)
+
+**Step 4:** Drop `new`, `iso2` and `iso3` since they’re redundant. (1 point)
+
+**Step 5:** Separate `sexage` into `sex` and `age` by splitting after the first character. (1 point)
+
+[Note]{.underline}: Save the result of each step into the object named `df_who`.
+
+```{r Exercise 2, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+head(who)
+
+# Step 1
+
+# Step 2
+
+# Step 3
+
+# Step 4
+
+# Step 5
+
+```
+
+End-of-File\
+Pongsun B.\
+2025-09-11

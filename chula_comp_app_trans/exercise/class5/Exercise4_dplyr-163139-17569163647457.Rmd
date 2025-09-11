@@ -1,0 +1,556 @@
+---
+title: 'Exercise 4: Data Manipulation with dplyr'
+output: html_document
+date: "2025-09-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+if(!require(tidyverse)){install.packages("tidyverse")}
+
+```
+
+# Rename columns with the `rename()` function
+
+The `rename` function alters column names using the syntax `new_name = old_name`, while `rename_with` takes a function (`.fn`) to transform the column names from a set of columns (`.cols`, all by default).
+
+```         
+Syntax
+# Set new column names
+rename(.data, new_name = old_name)
+
+# Rename the selected columns (all by default) based on a function
+rename_with(.data, .fn, .cols)
+```
+
+## Rename a single column
+
+Here, we will utilize the `band_instruments` dataset from `dplyr`, which includes two columns named `name` and `plays`.
+
+Note that you can also **rename columns by index**.
+
+```{r Rename a single column, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+library(dplyr)
+
+data(band_instruments)
+band_instruments
+
+# Rename the first column 'name' to 'FirstName' and save as 'my_df1'
+
+
+# Rename the second column as 'SecondColumn' and save as 'my_df2'
+
+
+```
+
+## Rename multiple columns
+
+It is possible to **rename multiple columns at once** by adding more `new_name = old_name` expressions to the function separated by comma.
+
+An alternative to the previous is to **use a named vector** with the old names and new names in conjunction with `all_of` or `any_of`. The difference is that `any_of` won’t throw an error if any “old name” is not on the dataset.
+
+```{r Rename multiple columns, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Rename the column 'name' as 'Member' and the column 'plays' as 'Instrument'
+
+
+# Rename 'name' as 'Member name' and 'plays' as 'Instrument' using the following named vector
+new_names <- c("MemberName" = "name", "Instrument" = "plays")
+new_names
+
+
+```
+
+## Rename columns using the `rename_with` function
+
+The `rename_with` function **renames all or a set of columns based on a function**.
+
+### **Rename all columns**
+
+By default, the `rename_with` function will **rename all columns based on the input function**. For example, we use the `toupper` function to rename all the columns in uppercase.
+
+If the input function takes more arguments, such as [**`paste` or `paste0` functions**](https://r-coder.com/paste-r/) you will need to **add `~` before the function** and a dot `.` to represent the column names. In the following example we also set `recycle0 = TRUE` to recycle empty selections if needed.
+
+Note that you can also input **a custom function**.
+
+### **Rename specific columns**
+
+By default `.cols = everything()`, which means that the input function is applied to all the columns of the data. However, you can select the desired columns by using functions such as `contains`, `starts_with`, `ends_with` etc.
+
+```{r Rename columns using the rename_with function, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Rename all the columns with the names in uppercase
+
+
+# Add a prefix "new_" to the existing columns
+
+
+# Repeat the previous task by using a custom function 'my_function'
+my_function <- function(x) {
+  paste0("new_", x)
+}
+
+
+# Rename all column names containing the string 'nam' to upper case
+
+
+```
+
+# **Filter rows with dplyr**
+
+The `filter` function from dplyr subsets rows of a data frame based on a single or multiple conditions. In this tutorial you will learn how to select rows using comparison and logical operators and how to filter by row number with `slice`.
+
+## Filter rows based on a single condition
+
+This tutorial will use the `women` data set provided by R. This data set contains two numeric columns: `height` and `weight`.
+
+The `filter` function allows to **subset rows of a data frame based on a condition**. You can filter the values equal to, not equal to, lower than or greater than a value by specifying the desired condition within the function.
+
+| **Comparison operator** |    **Description**    |
+|:-----------------------:|:---------------------:|
+|           \>            |     Greater than      |
+|           \<            |      Lower than       |
+|           \>=           | Greater or equal than |
+|           \<=           |  Lower or equal than  |
+|           ==            |       Equal to        |
+|           !=            |     Not equal to      |
+
+It is also possible to **filter rows using logical operators or functions** that return `TRUE` or `FALSE` or a combination of them. The most common are shown in the table below.
+
+| **Operator/function** |      **Description**       |
+|:---------------------:|:--------------------------:|
+|           !           |   Logical negation ‘NOT’   |
+|         %in%          |         In the set         |
+|      !(x %in% y)      |         x not in y         |
+|        is.na()        |           Is NA            |
+|       !is.na()        |         Is not NA          |
+|        grepl()        |     Contains a pattern     |
+|       !grepl()        | Does not contain a pattern |
+
+To **filter rows containing a specific string** you can use `grepl` or `str_detect`.
+
+```{r Filter rows based on a single condition, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+data(women)
+women
+
+# Filter the rows where the height column is greater than 68 and save as 'fil_df1'
+
+
+# Select the rows where the height is equal or lower to the mean of the column and save as 'fil_df2'
+
+
+# Filter the rows in which the height column takes the value 65, 70 and 72
+
+
+# Select the opposite of the filtering made on the previous code, and save as 'fil_df4'
+
+
+# Select the rows that contain a 5 inside the values of 'height', and save as 'fil_df5'
+
+
+```
+
+## Filter rows based on multiple conditions
+
+Row filtering can also be **based on multiple conditions** to filter, for instance, rows where a value is in a specific range or to filter between dates. For this you will need to use logical operators, such as `&` to specify **one AND another condition**, and `|` to specify **one OR another condition**.
+
+Note that the multiple conditions can be **based on multiple columns**.
+
+| **Logical operator** |                   **Description**                   |
+|:---------------------:|:-----------------------------------------------:|
+|          &           |              Elementwise logical ‘AND’              |
+|          \|          |              Elementwise logical ‘OR’               |
+|        xor()         | Elementwise exclusive ‘OR’. Equivalent to !(x \| y) |
+
+```{r Filter rows based on multiple conditions, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Select rows whose values in the height column are greater than 65 and lower than 68, and save as 'fil_df6'
+
+
+# Select the rows whose values in height are greater than 65 and whose values in weight are lower or equal to 150
+# Then, save the result as 'fil_df7'
+
+
+# Filter the rows whose values in height area greater than 65 or whose values in weight are greater or equal to 150
+# Then, save the result as 'fil_df8'
+
+
+```
+
+## Filter by row number with `slice`
+
+A similar function related to `filter` is `slice`, which allows to **filter rows based on its index/position**. The function takes a sequence or vector of indices (integers) as input.
+
+In addition, the `slice_head` function allows to **select the first row** of the data frame. This function provides an argument named `n` to select the `n` first rows. Finally, if you need to **select the last row** you can use `slice_tail`. This function also provides an argument named `n` to select the last `n` rows of the data frame.
+
+Note that **`slice_sample`** selects rows randomly and **`slice_min`** and **`slice_max`** selects the rows with the lowest or highest values of a variable, respectively.
+
+```{r Filter by row number with slice, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Select the first 3 rows
+
+
+# Select the first 3 rows with the 'slice_head' function
+
+
+# Select the last 5 rows with the 'slice_tail' function
+
+
+# Select the rows with the top-3 weights
+
+
+# Random select 5 rows with or without replacement
+
+
+```
+
+# Select columns with dplyr
+
+Select or remove columns from a data frame with the `select` function from dplyr and learn how to use helper functions to select columns such as `contains`, `matches`, `all_of`, `any_of`, `starts_with`, `ends_with`, `last_col`, `where`, `num_range` and `everything`.
+
+## Select columns
+
+The `select` function allows to filter columns from a data frame. Columns can be selected either by name or index/position.
+
+### By name
+
+Given a dataset you will need to specify the desired columns inside `select` with or without quotes. Note that you can select one or multiple columns.
+
+You can also **select a sequence of columns** using `:`.
+
+### By index
+
+Columns can also be selected by index. To do so you just have to specify the desired column numbers inside `select`.
+
+```{r Select columns, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+data(starwars)
+head(starwars, 10)
+
+set.seed(123)
+
+my_starwars <- starwars[, 1:6] %>% 
+  slice_sample(n = 5)
+my_starwars
+
+# Select columns named 'name' and 'height'
+
+
+# Select the columns from height to skin_color
+
+
+# Select the first, the fifth and the sixth column.
+
+
+```
+
+## Drop columns
+
+The `select` function can also be used to filter out certain columns. To do this, it is only necessary to add the symbol `-` before each column name. In case you want to drop several columns you can add `-` before each column name or before a vector with the names.
+
+To remove a range of columns you will have to use the `-` operator and add the sequence of columns inside parenthesis.
+
+Note that in addition to the minus operator (`-`) there is the exclamation operator (`!`), which negates the selection criteria. This means that selects all columns and excludes those matching the selection criteria.
+
+```{r Drop columns, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Select all columns except mass
+
+
+# Drop 'height', 'mass' and 'hair_color'
+
+
+# Select all columns except the fourth, the fifth and the sixth
+
+
+# Select ALL EXCEPT "name" using the exclamation operator (!)
+
+
+```
+
+## Helper functions to select or remove columns
+
+There are several helper functions to select columns based on patterns, such as `contains`, `starts_with`, `ends_with`, `matches` and `num_range`, based on a condition with `where`, based on character vectors such as `any_of` and `all_of` etc. The following table describes the most common functions and their usage.
+
+| **Function** | **Description** |
+|:----------------------------------:|:----------------------------------:|
+| `contains("text")` | Selects columns containing the given text (exact match) |
+| `all_of(c("col1", "col2"))` | Selects all columns based on a character vector |
+| `any_of(c("col1", "col2"))` | Selects columns based on a character vector, even if some do not exist |
+| `starts_with("prefix")` | Selects columns starting with the given prefix (exact match) |
+| `ends_with("suffix")` | Selects columns ending with the given suffix (exact match) |
+| `last_col()` | Select the last column |
+| `matches("regex")` | Selects columns that match a regular expression |
+| `num_range("prefix", 1:5)` | Selects columns with a prefix and numeric range in their names |
+| `where()` | Selects columns that meet a given condition, e.g. `where(is.numeric)` or `where(is.character)` |
+| `group_cols()` | Select the columns grouped with `group_by` |
+| `everything()` | Select all columns |
+
+### `contains`
+
+The `contains` function matches all columns containing a string.
+
+### `all_of` and `any_of`
+
+The `all_of` and `any_of` function allow to select columns from character vectors. The difference between these functions is that `all_of` selects all the columns based on the vector and **if any variable is missing an error is thrown**, while `any_of` selects variables based on the vector **without checking missing variables**.
+
+### **`starts_with`**
+
+If you want to select columns that start with a specific string you can use the `starts_with` function.
+
+### **`ends_with`**
+
+Similar to the previous function, `ends_with` searches for the columns that end with a specific string.
+
+You can select the intersection or union of two sets of variables with **`&`** and **`|`**. For instance, **`select(starts_with("h") & ends_with("r"))`** selects all columns that starts with the letter **`h`**and ends with **`r`**.
+
+### **`matches`**
+
+The `matches` function selects columns based on regular expressions.
+
+### **`num_range`**
+
+If your variables are named with a prefix and a numeric range, such as `x1`, `x2`, … or `y_1`, `y_2`, … you can use the `num_range` function to quickly select a range of columns.
+
+### **`where`**
+
+The `where` function takes a function that returns `TRUE` or `FALSE` as input and selects columns based on the desired condition. For example, you can select or drop all numeric, character or factor variables using `where(is.numeric)`, `where(is.character)` and `where(is.factor)`, respectively.
+
+```{r Helper functions, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Select 'name' and all columns containing 'color'
+
+
+# Select the columns based on a vector named column_names using all_of
+column_names <- c("height", "eye_color")
+
+
+# Select the columns based on a vector named another_column_names
+another_column_names <- c("mass", "skin_color", "gender", "abc")
+
+
+# Select the variable 'name' and all variables that start with the letter 'h'
+
+
+# Select all columns that starts with the letter 'h' or ends with 'r'
+
+
+# Selects all columns containing the letter 'a' or the letter 't'
+
+
+# my_starwars with new column names
+new_starwars <- my_starwars
+colnames(new_starwars) <- paste0("x", 1:ncol(new_starwars))
+new_starwars
+
+# Select x1, x2 and x3 of new_starwars
+
+
+# Select all character variables of new_starwars
+
+
+```
+
+# Create and modify columns with the `mutate()` function
+
+The `mutate` function from dplyr package is used to **create new columns or modify existing columns** in a data frame, while retaining the original structure. It enables users to apply functions or operations to data within a data frame and store the results as new variables.
+
+The syntax of the `mutate` function is the following:
+
+```         
+Syntax
+
+# Basic usage
+mutate(.data, new_column_name = expression)
+
+mutate(
+  .data,  # Data set
+  ...,    # New columns (new_column_name = expression)
+  .by = NULL, # Grouping variables
+  .keep = c("all", "used", "unused", "none"), # Which columns to keep
+  .before = NULL, # New columns will appear before this
+  .after = NULL   # New columns will appear after this
+)
+```
+
+## Create new columns
+
+To create a new column you can specify the new column name and a expression to calculate the values of the new column. You can also **apply a function to a column** to create a new one.
+
+Notice that you can **add several columns simultaneously** by passing more expressions separated by commas to `mutate`.
+
+```{r Create new columns with mutate, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+set.seed(8)
+
+sample_df <- data.frame(Var1 = sample(1:50, 5), Var2 = sample(1:50, 5))
+
+# Add new column 'Var3' with the sum of 'Var1' and 'Var2'
+
+
+# Add new column 'Sqrt_Var1' with the square root of 'Var1'
+
+
+# Create three new columns named 'Var3', 'Var4' and 'Var5'
+# where, Var3 = Var1 + Var2;
+# Var4 = cumulative sum of 'Var1'
+# Var5: if Var1 > Var2, return 'TRUE', else return 'FALSE'
+
+
+```
+
+## Using `across`
+
+The `across` function allows to select specific columns with **helper functions** while using `mutate`.
+
+With `across`, you can also select specific columns and apply a custom function to them without creating new columns.
+
+In such cases where the desired function takes additional arguments, you will need to use `~` before the function and reference `.` to represent the column values.
+
+```{r Using across, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Apply the 'sqrt' function to all columns containing "Var" in their names. 
+# The new columns are named using the previous column name followed by a suffix "_sqrt"
+
+
+# Apply log to all columns of the following data framce but 'Var1'
+sample_df2 <- sample_df %>%
+  mutate(Var3 = Var1 + Var2)
+sample_df2
+
+
+# Use paste0 to add "Value: " to all observations in all columns of 'sample_df2' except 'Var1'
+
+
+```
+
+## Position of the new column(s)
+
+By default, when you use `mutate` to create a new column, it appends that column to the end of the data frame. Nevertheless, the `mutate` function allows for the use of `.before` or `.after` arguments to **control the position of the new columns** relative to other columns.
+
+Additionally, you can **specify positions based on the index** of the column. For instance, setting `.before = 1` will add the new column as the first column.
+
+```{r Position of the new column(s), warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# From 'sample_df2', create new column 'Var4' with the multiplication of 'Var1' and 'Var2' and add it before 'Var2'
+
+
+# Add a new column 'Var4' on the first position (before first column)
+
+
+```
+
+## Keep or drop column(s)
+
+When you add new columns to a data frame all other **columns are preserved by default**. However, the `.keep` argument, which defaults to `"all"`, can also be set to `"used"` to only keep columns used inside `mutate`, to `"unused"` to keep unused columns and to `"none"` to delete all the old columns.
+
+```{r Keep or drop column(s), warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# From 'sample_df2', create new column 'Var4' with the multiplication of 'Var1' and 'Var2'
+# Then, use .keep to retain only used columns
+
+
+# Keep only the new column and the columns that haven’t been used 
+
+
+# Remove all columns from the original data frame
+
+
+```
+
+# Create statistical summaries with the `summarise()` function
+
+The `summarise` (or `summarize`) function is used for aggregating and summarizing data. It’s particularly helpful for condensing data into a single row per group, offering various statistical summaries or computations for each group. This function creates a new data frame with the specified summary statistics. The syntax is as follows:
+
+```         
+Syntax
+
+summarise(data, new_column = function(column))
+```
+
+## **Statistical summaries of the data**
+
+Given a dataset, you can **generate a new data frame containing statistical summaries of specific variables from the original data frame**. The table below describes some of the most useful functions for use with `summarise`, such as `mean` or `sum`.
+
+Note that the resulting output will contain as many rows as the values returned by the input function.
+
+| **Function** |                **Description**                |
+|:------------:|:---------------------------------------------:|
+|    mean()    |              Mean of the values               |
+|   median()   |             Median of the values              |
+| sd(), var()  | Standard deviation and variance of the values |
+|  quantile()  |            Quantiles of the values            |
+|    IQR()     |              Interquartile range              |
+| min(), max() |           Minimum and maximum value           |
+|   first()    |                  First value                  |
+|    last()    |                  Last value                   |
+|    nth()     |                   Nth value                   |
+|     n()      |         Number of elements per group          |
+| n_distinct() |            Number of unique values            |
+
+```{r Statistical summaries of the data, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+set.seed(9)
+survey_df <- data.frame(group = sample(c("G1", "G2"), 5, replace = TRUE),
+                        x = sample(1:50, 5), 
+                        y = sample(1:50, 5))
+survey_df
+
+# Generate a new data frame containing the average of the numerical variables from the original data frame
+
+
+# Range of 'x' and 'y'
+
+
+```
+
+## **Summarise data by group with `group_by`**
+
+The `summarise` function is particularly useful in conjunction with `group_by`. In this scenario, the new data frame will contain **statistical summaries for each group**.
+
+Additionally, you can **group by more than one categorical variable**. In this scenario, the function calculates statistical summaries for each group and subgroup. By default, the output is grouped by the first categorical variable, as indicated by a message.
+
+The `.groups` argument is **optional** and can take one of the following values: `"drop_last"` to drop the last level of grouping, `"drop"` to drop all groups, `"keep"` to preserve the original grouping or `"rowwise"`, to treat each row as its own group.
+
+```{r Summarise data by group, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Calculate the mean for each column based on the groups of the 'group' variable
+
+
+# New surveyed data
+set.seed(9)
+survey_df2 <- data.frame(group_1 = sample(c("G1", "G2"), 5, replace = TRUE),
+                         group_2 = sample(c("G3", "G4"), 5, replace = TRUE),
+                         x = sample(1:50, 5), 
+                         y = sample(1:50, 5))
+survey_df2
+
+# Sum of 'x' and sum of 'y' by 'group_1' and 'group_2'
+
+
+# Sum of 'x' and sum of 'y' by 'group_1' and 'group_2' and drop all groups from the result
+
+
+```
+
+## **Summarise multiple columns**
+
+Instead of manually specifying several columns, you can create summaries by **selecting them based on a condition using** `summarise` in combination with `across`.
+
+The `where` function is **highly useful** as it enables the selection of columns based on a condition, like choosing only numeric columns using `where(is.numeric)`.
+
+```{r Summarise multiple columns, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Calculate the variance of all columns in 'survey_df' except 'group', and rename the resulting columns using the original column names with the "_var" suffix
+
+
+# Summarise ALL the NUMERIC columns by their median
+
+
+```
+
+End-of-File\
+Pongsun B.\
+2025-09-04

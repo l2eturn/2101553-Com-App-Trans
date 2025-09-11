@@ -1,0 +1,252 @@
+---
+title: "Read, Write and Cleaning Data"
+author: "Pongsun B."
+date: "2024-08-22"
+output:
+  pdf_document: default
+  html_document: default
+header-includes:
+  - \pagenumbering{gobble}
+---
+
+## ==== First things first ====
+
+Important matters should be dealt with before other things.
+
+1.  Setting the working directory in R can be done using the `setwd()` function.
+
+### Mac
+
+`"/Users/USERNAME/Documents/myR/"`
+
+### Windows
+
+`"C:\Users\USERNAME\Documents\myR\"`
+
+To read a CSV data file within a sub-folder `Data` under the working directory
+
+`"./Data/FILENAME.csv"`
+
+2.  Installing R packages can be done using the `install.packages()` function.
+
+3.  Loading R packages is quite easy by just typing `library()` function.
+
+4.  Installing and Loading R packages can be combined into one step by `if(!require()){install.packages(" ")}`
+
+```{r Set working directory}
+# Check current working directory  
+getwd()
+# Set working directory
+
+# Call required packages, ex. "readxl", "tidyverse"
+
+```
+
+## ==== Read Data in R ====
+
+### Read CSV (Comma Separated Value) file
+
+```{r Read CSV file}
+# Read CSV file "RenSteve.csv" with `read_csv`
+ClassData <- 
+# Use `spec()` to retrieve the full column specification for this data
+spec(ClassData)
+# Read CSV file with `read.csv` and `read.table`
+ClassData2 <- 
+ClassData3 <-  
+# Read CSV file from Dropbox (MUST edit dl=0 to dl=1!!)
+# URL: https://www.dropbox.com/scl/fi/gg5okzhny0wjejrgw066s/sales.csv?rlkey=qggpmjmyfh2w8e0r3wt0tmsbd&dl=0
+df_sales <- 
+# Read shared file from OneDrive  (MUST edit "embed" to "download"!!)
+# URL: https://onedrive.live.com/embed?resid=B83741508FA07690%211290&authkey=!AEBphFQulUSB8HQ
+df_sales2 <-
+
+# Another method
+if(!require(stringr)){install.packages("stringr")}
+import_url <- str_replace("https://onedrive.live.com/embed?resid=B83741508FA07690%21259&authkey=!AKpzaWBcwCfeZ9E","embed","download")
+test_Thai <- read_tsv(import_url)
+
+# Another way is using "Import Dataset" feature of RStudio
+# Import Dataset > From Text (base) or From Text (readr)
+```
+
+### Read Excel file
+
+```{r Read Excel file}
+# Read Excel file "RenSteve.xlsx" with `read_excel`
+ClassData4 <- 
+# Assign "range of data" to be read
+# File: TopMovies.xlsx
+# Range: C5:F55
+TopMovies <- 
+# Excel with multiple sheets
+# File: multi.xlsx
+df_drinks <- 
+df_accident <- 
+# Read Excel file from Dropbox
+tempURL <- "https://www.dropbox.com/s/6un9tfrz6vy74fq/RenSteve.xlsx?dl=1"
+download.file(tempURL, destfile = "local.xlsx")
+my.data <- read_excel("local.xlsx", col_names = TRUE, col_types = "text")
+```
+
+## ==== Write Data in R ====
+
+### Save data frame to CSV file
+
+```{r Save data frame to CSV file}
+# Save data frame to CSV file with "write.csv" or "write_csv"
+# Use write.csv
+
+# Use write_csv
+# Require library(readr)
+
+```
+
+### Write data frame to Excel file
+
+<https://sparkbyexamples.com/r-programming/export-excel-in-r-xlsx-or-xls/><https://datatofish.com/export-dataframe-to-excel-in-r/>
+
+The r-package `writexl` is required to write `.xlsx` files. More specifically, to write to an Excel file we will use the `write_xlsx` function.
+
+Let's start by creating a data frame with some variables.
+
+`df <- data.frame("Age" = c(21, 22, 20, 19, 18, 23), "Names" = c("Andreas", "George", "Steve", "Sarah", "Joanna", "Hanna"))`
+
+`str(df)`
+
+To write to `.xlsx` using the `write_xlsx` function from the `writexl` package:
+
+`if(!require(writexl)){install.packages("writexl")}`
+
+`write_xlsx(df, 'names_ages.xlsx')`
+
+```{r Write data frame to Excel file}
+df <- data.frame("Age" = c(21, 22, 20, 19, 18, 23), 
+                 "Names" = c("Andreas", "George", "Steve", "Sarah", "Joanna", "Hanna"))
+str(df)
+
+# Export output to .xlsx file
+
+
+```
+
+## ==== Data Cleaning in R ====
+
+### How to delete a row of data frame?
+
+To delete a row of data frame in R, you can use the `–` operator. For example, if you want to remove the first row from a data frame in R you can use the following code: `dataFrame <- dataFrame[-1, ]`. This code will remove the first row from the data frame. Of course, if you need to drop multiple rows, you can add them using the vector function: `dataFrame <- [-c(1, 2, 3),]`.
+
+It is also possible to use the `slice()` function from the package `dplyr` to delete a row by its index.
+
+```{r To delete a row of data frame}
+# Read Excel file "play_data.xlsx" with "read_excel"
+play_data <- 
+# Delete the second row
+
+# Delete the 5th to 7th rows 
+
+# To remove 1st to 4th rows using the slice() function
+
+```
+
+### How to remove a row from a matrix?
+
+Removing a row from a matrix can be done in the same way you delete a row from a data frame: `mtx <- mtx[-1,]`.
+
+```{r To remove a row from a matrix}
+mtx <- matrix(seq(1,15), byrow = TRUE, ncol = 3)
+# Drop the last row from matrix
+
+```
+
+### Delete rows based on conditions using the `filter()` function
+
+Sometimes we need to remove a row (or rows) based on one or many conditions. We can use the `filter()` function from the package `dplyr`.
+
+Note that %\>% is called a "Pipeline", which means "then".
+
+```{r using the filter() function}
+# Delete the data with first name "James"
+play_data2 <-
+# Delete the data with first name "James" and all "fifth" day
+play_data3 <-
+
+```
+
+### Remove ALL rows with missing values (NA)
+
+To remove the missing values, use the `na.omit()` function.
+
+`dataf_na <- na.omit(dataf_na)`
+
+Alternatively, we can remove all rows with NA in the data frame using the `drop_na()` function in the package `tidyr`.
+
+```{r Remove the missing values (NA)}
+# Use the `na.omit()` function
+play_data4 <- 
+# Use the `drop_na()` function in the  package `tidyr`
+play_data5 <- 
+
+# Create test data
+student.data <- data.frame(student = c("Ben","Jena","Jay","Lek","Bruce"),
+                gender = c("M","F","F",NA,"M"),
+                score1 = c(10,20,NA,40,50),
+                score2 = c(25,NA,10,20,17),
+                score3 = c(6,4,-99999,5,7))
+student.data$score3[student.data$score3 == -99999] <- NA
+student.data
+# To remove all data with NA
+new.student.data <-
+# Use the `complete.cases` function
+student.data1 <- 
+  
+student.data2 <- 
+
+# Check only "score1","score2" and "score3"
+student.data3 <- 
+  
+student.data4 <- 
+
+# To replace NA with the mean of known data
+which(is.na(student.data$score1))
+student.data$score1[which(is.na(student.data$score1))] <- 
+
+```
+
+### How to remove duplicate rows and columns
+
+To delete duplicate rows in R you can use the `duplicated()` function.
+
+`study_df.un <- study_df[!duplicated(df), ]`
+
+To remove duplicate columns we added the `as.list()` function and removed the `","`.
+
+The function `distinct()` is used to keep only unique/distinct rows from the data frame. When working with the `distinct()` function, if there are duplicate rows, only the first row of the identical ones is preserved. It is also possible to delete duplicate rows based on values in a certain column.
+
+```{r Remove duplicate rows and columns}
+# Creating a data frame
+example_df <- data.frame(FName = c('Steve', 'Steve', 'Erica', 'John', 'Brody', 'Lisa', 'Lisa', 'Jens'),
+                         LName = c('Johnson', 'Johnson', 'Ericson','Peterson', 'Stephenson', 'Bond', 'Bond','Gustafsson'),
+                         Age = c(34, 34, 40, 44, 44, 51, 51, 50),
+                         Gender = c('M', 'M', 'F', 'M', 'M', 'F', 'F', 'M'),
+                         Gender = c('M', 'M', 'F', 'M', 'M', 'F', 'F', 'M'))
+# Remove duplicated rows from data frame
+example_df.un <- 
+  
+# Remove duplicate rows using the unique() function
+examp_df <- 
+  
+# Drop duplicated columns
+ex_df.un <- 
+  
+# Drop duplicates with the distinct() function
+ex_df.remove <- 
+  
+# Remove duplicate rows based on the "Age" column
+# The .keep_all argument to keep all the columns in the data frame. 
+
+```
+
+End-of-File\
+Pongsun B.\
+2024-08-22

@@ -1,0 +1,365 @@
+---
+title: 'Exercise 3: Data Transformation with Base R (2)'
+output: html_document
+date: "2025-08-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Frequency tables
+
+The `table` function can be used for summarizing categorical data and generating absolute frequency and contigency tables. In this tutorial we will be exploring its syntax, various arguments, and practical examples to illustrate its utility in analyzing data. We will also explore the `prop.table` for relative frequency tables, `xtabs` for cross-tabulation, and `addmargins` to add margins to tables.
+
+## The `table` function
+
+The `table` function is used to tabulate categorical data, counting the number of occurrences of each category. This function can create one-way tables, which provide the frequency of each category in a single variable, and two-way tables (or higher in high-dimensional arrays), which display the frequency distribution across two or more variables.
+
+The syntax of the function is the following:
+
+```         
+Syntax
+table(..., 
+      exclude = if (useNA == "no") c(NA, NaN),
+      useNA = c("no", "ifany", "always"),
+      dnn = list.names(...),
+      deparse.level = 1)
+```
+
+where,
+
+-   `...`: one or more categorical variables or expressions to be tabulated.
+
+-   `exclude`: optional argument specifying levels to be excluded from the table.
+
+-   `useNA`: treatment of missing values. Possible options are `"no"` (default), `"ifany"` and `"always"`
+
+-   `dnn`: character vector providing names for the resulting table.
+
+-   `deparse.level`: controls how `dnn` is constructed by default. Read the documentation of the function for additional details.
+
+### One-way frequency table
+
+One-way tables represent the frequency distribution of a single variable. They are useful for understanding the distribution of categories within a variable. In order to create a table you will need to input a c**haracter vector**.
+
+The function provides an argument named `exclude` that can be used to **exclude some categories from the output table**.
+
+Sometimes, analyzing the **presence of missing values** is as important as the available data. The `useNA` argument can be leveraged to include `NA` values in the table. When set to `"ifany"` the table will also count the number of missing values.
+
+When set to `"always"` the table will display the number of `NA` values even if there were none. This is very useful for data checking.
+
+```{r One-way frequency table, warning=FALSE}
+
+# Sample data
+my_vec1 <- c("B", "A", "C", "C", "A", "C", "B")
+
+# Create a simple frequency table for a categorical variable
+one_way_table <- table(my_vec1)
+one_way_table
+
+# Crate a bar plot
+barplot(one_way_table, col = 2:4, ylab = "Count")
+
+# Exclude specific level "B" from the frequency table
+table(my_vec1, exclude = "B")
+
+# Another sample data
+my_vec2 <- c("B", "A", NA, NA, "A", "C", "B")
+
+# Count NA values of my_vec2 (if any) 
+table(my_vec2, useNA = "ifany")
+
+# Count NA values of my_vec1 (even if there are none)
+table(my_vec1, useNA = "always")
+
+```
+
+### Two-way contingency table
+
+Two-way tables show the relationship between two categorical variables. They are crucial for examining the interactions between variables. This type of table can also be created with the `table` function, but you will need to input **two character vectors of the same length**.
+
+```{r Two-way frequency table, warning=FALSE}
+
+# Sample data
+gender <- c("Male", "Female", "Male", "Female", "Male")
+age_group <- c("Junior", "Senior", "Senior", "Junior", "Junior")
+
+# Create a two-way table
+two_way_table <- table(gender, age_group)
+two_way_table
+
+# Crate a bar plot
+barplot(two_way_table, col = 2:3, beside = TRUE, ylab = "Count")
+legend("topright", legend = c("Female", "Male"), fill = 2:3)
+
+```
+
+## The `prop.table` function
+
+The `prop.table` function takes a table created with `table` and converts it into a **relative frequency table**, also known as proportion table.
+
+The function includes an argument named `margin`. Setting `margin` to `1` calculates proportions based on the sum of each row, whereas setting it to `2` calculates proportions based on the sum of each column.
+
+```{r The prop.table function, warning=FALSE}
+
+# Create the relative frequency table of two_way_table
+prop.table(two_way_table)
+
+# Create the rowwise frequency table 
+prop.table(two_way_table, margin = 1)
+
+# Create the columnwise relative frequency table
+prop.table(two_way_table, margin = 2)
+
+```
+
+## The `xtabs` function
+
+The `xtabs` function allows creating contingency tables and it is **specially useful for grouped data and when working with data frames**. Unlike `table`, it uses a formula syntax, which allows for more complex specifications and is ideal for statistical analysis.
+
+An interesting feature of `xtabs` is that it can **create weighted contingency tables**.
+
+```{r The xtabs function, warning=FALSE}
+
+# Sample data frame
+my_df <- data.frame(x = c("G1", "G2", "G2", "G1", "G1", "G2"),
+                    y = c("A", "B", "B", "C", "A", "C"),
+                    w = c(0.1, 0.2, 0.2, 0.1, 0.1, 0.3))
+
+# Crate a contingency table with xtabs
+my_tab <- xtabs(~ x + y, data = my_df)
+my_tab
+
+# Crate a weighted contingency table using the column w:
+my_tab2 <- xtabs(w ~ x + y, data = my_df)
+my_tab2
+
+# 'DF' is a data frame with a grid of the factors and the counts in variable 'Freq'.
+DF <- as.data.frame(UCBAdmissions)
+head(DF)
+
+# Crate a contingency table of the variable 'Freq' using the factors 'Gender' and 'Admit'
+xtabs(Freq ~ Gender + Admit, DF)
+# Crate a contingency table of the variable 'Freq' using the factors 'Gender' and 'Dept'
+xtabs(Freq ~ Gender + Dept, DF)
+
+```
+
+## The `addmargins` function
+
+The `addmargins` function in R is used to add row and/or column margins, usually representing sums or totals of the rows and/or columns to tables created with `table` or similar functions. The syntax of the function is the following:
+
+```         
+Syntax
+addmargins(A, margin = NULL, FUN = sum, quiet = FALSE)
+```
+
+where,
+
+-   `A`: the input table.
+
+-   `margin`: the desired margin. By default, the function calculates all margins, but when is set to 1, only row margins are calculated, and when set to 2, only column margins are calculated.
+
+-   `FUN`: function to be applied to calculate the margins. It sums by default.
+
+-   `quiet`: logical. If set to `TRUE` suppress messages.
+
+When the function is applied to a table both margins will be added by default, counting the number of elements for rows and columns.
+
+However, if you only want to calculate the margins for rows or for columns you will need to set the `margin` argument to `1` or `2` depending on your needs.
+
+```{r The addmargins function, warning=FALSE}
+
+# Add margins to a two-way table
+addmargins(two_way_table)
+
+# Add 'mean' margins to a two-way table
+addmargins(two_way_table, FUN = mean)
+
+# Add only column margins
+addmargins(two_way_table, margin = 2)
+
+# Add 'sum' column margins and 'mean'row margins
+aa <- addmargins(two_way_table, margin = 2)
+aa <- addmargins(aa, margin = 1, FUN = mean)
+aa
+
+```
+
+# Merge data frames
+
+The `merge` function allows **merging two data frames by common columns or by row names**. This function allows you to perform different database (SQL) joins, like left join, inner join, right join or full join, among others.
+
+## The `Merge` function
+
+The syntax of the `merge` function with a brief description of its arguments is shown in the following block of code:
+
+```         
+Syntax
+merge(x, y, ...)
+
+# For data frames:
+merge(x, y, # Data frames or objects to be coerced
+      by = intersect(names(x), names(y)), # Columns used for merging
+      by.x = by, by.y = by, # Columns used for merging
+      all = FALSE, # If TRUE, all.x = TRUE and all.y = TRUE
+      all.x = all, all.y = all, # If TRUE, adds rows for each row in x (y) that not match a row in y (x).
+      sort = TRUE, # Whether to sort the output by the 'by' columns
+      suffixes = c(".x",".y"), # Suffixes for creating unique column names
+      no.dups = TRUE, # Whether to avoid duplicated column names appending more suffixes or not
+      incomparables = NULL, # How to deal with values that can not be matched
+      ...) # Additional arguments
+```
+
+Note that the main method of the `merge` function is for data frames. However, `merge` is a generic function that can be also used with other objects (like vectors or matrices), but they will be coerced to `data.frame` class.
+
+In order to create a reproducible example to show how to merge two data frames in R, we are going to use the following sample datasets named `df_1`, that represents the id, name and monthly salary of some employees of a company and `df_2`, that shows the id, name, age and position of some employees.
+
+```{r Merge data frames, warning=FALSE}
+
+# Sample datasets
+set.seed(61)
+
+employee_id <- 1:10
+employee_name <- c("Alice", "Bob", "Charlie", "Daniel", "Emma",
+                   "Frank", "George", "Helen", "Isaac", "Jack")
+employee_salary <- sort(round(rnorm(10, mean = 1500, sd = 500)), decreasing = T)
+employee_age <- sort(round(rnorm(10, mean = 50, sd = 8)), decreasing = T)
+employee_position <- c("CTO", "CFO", "Administrative", rep("Technician", 7))
+
+df_1 <- data.frame(id = employee_id[1:8], name = employee_name[1:8],
+                   month_salary = employee_salary[1:8])
+df_2 <- data.frame(id = employee_id[-5], name = employee_name[-5],
+                   age = employee_age[-5], position = employee_position[-5])
+
+df_1
+df_2
+
+```
+
+Note that on a real life example, all `ids` will be unique but the `names` can be repeated. Also note that ‘Isaac’ and ‘Jack’ are missing in the first (their monthly salaries are not available with the current data) and ‘Emma’ is missing in the second table (neither her age nor her position are available).
+
+### **Inner join**
+
+An inner join (or a natural join), is the **most usual join of data sets** that you can perform. It consists on merging two dataframes in one that contains the common elements of both, as described in the following illustration:
+
+![](https://www.dropbox.com/scl/fi/nif8mc2zadb81bh0qqp7z/inner_join.png?rlkey=pjosvq5mpv6xi6ecsjp9crduz&dl=1){width="300"}
+
+In order to merge the two sample data sets, you just have to pass them to the `merge` function without the need of changing other arguments. By default, the function merges the data sets by the common column names. In consequence, in this case, the function merges the data by two columns (`id` and `name`).
+
+```{r Inner join, warning=FALSE}
+
+# Inner join df_1 and df_2
+merge(x = df_1, y = df_2)
+merge(x = df_1, y = df_2, by = c("id", "name")) # Equivalent
+
+```
+
+As we pointed out before, ‘Emma’, ‘Isaac’ and ‘Jack’ were not in both tables. In consequence, in the resulting output of this join they are missing.
+
+### **Full (outer) join**
+
+The outer join, also known as full outer join or full join, **merges all the columns of both data sets into one** for all elements:
+
+![](https://www.dropbox.com/scl/fi/dv7jqvx7hpv453nrmirjm/outer_join.png?rlkey=qgmgyhg192oes01j836nl0v9y&dl=1){width="300"}
+
+In order to create a full outer join of the two data frames, you have to set the argument `all` to `TRUE`.
+
+```{r Outer join, warning=FALSE}
+
+# Outer join df_1 and df_2
+merge(x = df_1, y = df_2, all = TRUE)
+
+```
+
+As not all rows in the first data frame match all the rows in the second, the output is filled with `NA` values in those cases.
+
+### **Left join**
+
+The left join **matches all the rows in the first data frame with the corresponding values on the second**. Recall that ‘Emma’ was on the first table but not on the second.
+
+![](https://www.dropbox.com/scl/fi/7zv0qrr8humcmyogaytzz/left_join.png?rlkey=ipx8vr2wxdnhm62knvvgssy6p&dl=1){width="300"}
+
+In order to create the left join, you just have to set `all.x = TRUE` as follows.
+
+```{r Left join, warning=FALSE}
+
+# Left join df_1 and df_2
+merge(x = df_1, y = df_2, all.x = TRUE)
+
+```
+
+As the employee corresponding to `id = 5` (Emma) is on the first data set but not on the second, the corresponding missing values are displayed as `NA`.
+
+### **Right join** 
+
+The right join is the opposite of the left join. In this case, the merge **joins all the rows in the second data frame with the corresponding on the first**.
+
+![](https://www.dropbox.com/scl/fi/yvzzru19o3p1b0jzhjmxe/right_join.png?rlkey=83ouwnqiez222e09c31o4rubi&dl=1){width="300"}
+
+To right join the data sets, you will need to set the argument `all.y` to `TRUE`.
+
+```{r Right join, warning=FALSE}
+
+# Right join df_1 and df_2
+merge(x = df_1, y = df_2, all.y = TRUE)
+
+```
+
+## **Merge data frames by row names**
+
+You can also **merge data frames by row names**. In this case, in order to join the data frames by the row names you have to set the argument `by` to `0` or to `"row.names"`.
+
+```{r Merge data frames by row names, warning=FALSE}
+
+df_3 <- data.frame(var = c("one", "two", "three", "four", "five"),
+                   data = c(1, 2, 4, 8, 16))
+rownames(df_3) <- c("A", "B", "C", "D", "E")
+
+df_4 <- data.frame(var = c("three", "one", "eight", "two", "nine"),
+                   data = c(1, 5, 10, 15, 20))
+rownames(df_4) <- c("E", "A", "B", "D", "C")
+
+df_3
+df_4
+
+# Merge df_3 and df_4 by row names
+merge(df_3, df_4, by = 0, all = TRUE) 
+merge(df_3, df_4, by = "row.names", all = TRUE) # Equivalent
+
+```
+
+As you can observe, the output contains as many rows as different row names. Note that we applied a full outer join, but you could join the data as you want.
+
+## **Merge more than two data frames**
+
+Finally, it is worth to mention that you can **iteratively merge data frames in R**, concatenating the `merge` function. For example, you can merge the three data frames by merging two and then merging the output with the remaining data set.
+
+Note that you can specify the arguments you prefer for each join and that you can concatenate as many merges as you need.
+
+```{r Merge more than two data frames, warning=FALSE}
+
+df_x <- data.frame(id = 1:4, 
+                   year = 1995:1998)
+df_y <- data.frame(id = c(4, 1, 3),
+                   year = c(1998, 1995, 1997), 
+                   age = c(22, 25, 23))
+df_z <- data.frame(id = c(1, 2, 3), 
+                   year = 1995:1997, 
+                   wage = c(1000, 1200, 1600))
+df_x
+df_y
+df_z
+
+# Inner join df_x, df_y, and df_z
+merge(df_x, merge(df_y, df_z))
+
+# Outer join df_x, df_y, and df_z
+merge(df_x, merge(df_y, df_z, all = TRUE), all = TRUE)
+
+```
+
+End-of-File\
+Pongsun B.\
+2025-08-28

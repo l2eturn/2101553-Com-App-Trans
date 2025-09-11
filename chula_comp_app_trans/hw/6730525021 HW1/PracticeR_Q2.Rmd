@@ -1,0 +1,122 @@
+---
+title: "Comp App Trans AY2024 Homework"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+## ==== First things first ====
+
+Set working directory and call packages.
+
+```{r}
+# Check current working directory  
+getwd()
+# Set working directory
+"C:/Users/Terxzera/Desktop/R_lang/chula_comp_app_trans/hw"
+# Call required packages, ex. "readxl", "tidyverse"
+if(!require(readxl)){install.packages("readxl")}
+if(!require(tidyverse)){install.packages("tidyverse")}
+if(!require(gapminder)){install.packages("gapminder")}
+
+```
+
+## ==== Question 2 ====
+
+**Step 1:** เรียกใช้ R built-in data ชื่อ gapminder ใน **library(gapminder)** แล้วสร้างเป็น object ชื่อ gap_data (0.5 คะแนน)
+
+-   country factor with 142 levels
+
+-   continent factor with 5 levels
+
+-   year ranges from 1952 to 2007 in increments of 5 years
+
+-   lifeExp life expectancy at birth, in years
+
+-   pop population
+
+-   gdpPercap GDP per capita (US\$, inflation-adjusted)
+
+**Step 2:** นับจำนวนประเทศที่อยู่ในทวีปเอเซีย (Asia) และค่ามัธยฐานของอายุคาดเฉลี่ย (life expectancy) ของทุกประเทศในทวีปเอเซีย (Asia) ในปี 2002 โดยแสดงผลในตัวแปรชื่อ n_countries และ lifeExp_med ตามลำดับ (0.5 คะแนน)
+
+**Step 3:** สร้างตารางสรุปจำนวนประชากร (Pop) และขนาดของเศรษฐกิจ (Total_GDP = pop \* gdpPercap) จำแนกรายทวีป ในปี 2002 โดยเรียงข้อมูลใหม่ตามขนาดของเศรษฐกิจ (Total_GDP) (1 คะแนน)
+
+[*Hint*]{.underline}*: สร้างคอลัมน์ใหม่แสดงขนาดของเศรษฐกิจ (Total GDP) โดยใช้ฟังก์ชัน* `mutate`
+
+**Step 4:** สร้างตารางแสดงค่า GDP per capita ของประเทศ China, Japan และ South Korea ตั้งแต่ปี 1980 โดยแสดงข้อมูลในรูปแบบ wide format กำหนดให้ ปี เป็น row header และชื่อประเทศเป็น column header (1 คะแนน)
+
+[*Hint*]{.underline}*: เปลี่ยนข้อมูลแบบ long ให้เป็นข้อมูลแบบ wide ด้วยคำสั่ง* `pivot_wider` *หรือ* `spread`
+
+**Step 5:** สร้างคอลัมน์ใหม่ให้ object ชื่อ gap_data โดยตั้งชื่อว่า "continent.f" ซึ่งเปลี่ยนลำดับ (level) ของ continent ตามจำนวนข้อมูล (the number of observations) จากน้อยไปหามาก โดยใช้คำสั่ง `fct_infreq()` และ `fct_rev()` จากนั้นเขียน 1 คำสั่งเพื่อแสดงลำดับของทวีปที่มีจำนวนประเทศจากน้อยไปหามาก (1 คะแนน)
+
+**Step 6:** เรียก **library(ggplot2)** จากนั้นสร้าง Barplot [แนวตั้ง]{.underline} แสดงจำนวนประเทศในแต่ละทวีป โดยมีคุณสมบัติของกราฟเพิ่มเติม ดังนี้ (1 คะแนน)
+
+-   เรียงลำดับกราฟจากน้อยไปหามาก (จากซ้ายไปขวา)
+
+-   แสดงสีของแต่ละทวีปแตกต่างกัน โดยกำหนดให้ `scale_fill_brewer(palette = "Spectral")`
+
+-   ไม่แสดง legend ของกราฟ
+
+-   เปลี่ยนชื่อแกน X เป็น "number of countries" และไม่แสดงชื่อแกน Y
+
+```{r Question 2}
+# ติดตั้งและเรียกใช้ library ที่จำเป็น
+
+# Step 1
+gap_data <- gapminder
+glimpse(gap_data)
+
+
+# Step 2
+asia_2002_data <- gap_data %>%
+  filter(continent == "Asia" & year == 2002)
+
+n_countries <- nrow(asia_2002_data)
+lifeExp_med <- median(asia_2002_data$lifeExp)
+
+print(paste("จำนวนประเทศในเอเซีย:", n_countries))
+print(paste("ค่ามัธยฐานอายุคาดเฉลี่ย:", lifeExp_med))
+
+
+# Step 3
+gdp_summary_2002 <- gap_data %>%
+  filter(year == 2002) %>%
+  mutate(Total_GDP = pop * gdpPercap) %>%
+  group_by(continent) %>%
+  summarise(
+    Total_Pop = sum(pop),
+    Total_GDP = sum(Total_GDP)
+  ) %>%
+  arrange(desc(Total_GDP))
+
+print(gdp_summary_2002)
+
+
+# Step 4
+gdp_wide <- gap_data %>%
+  filter(country %in% c("China", "Japan", "Korea, Rep."), year >= 1980) %>%
+  select(year, country, gdpPercap) %>%
+  pivot_wider(names_from = country, values_from = gdpPercap)
+
+print(gdp_wide)
+
+# Step 5
+gap_data <- gap_data %>%
+  mutate(continent.f = fct_rev(fct_infreq(continent)))
+
+print(levels(gap_data$continent.f))
+
+
+# Step 6
+ggplot(gap_data, aes(x = continent.f, fill = continent.f)) +
+  geom_bar(show.legend = FALSE) +
+  scale_fill_brewer(palette = "Spectral") +
+  labs(y = "number of countries", x = NULL)
+```
+
+Your name:
+
+Student ID:6730525021
+
+==== End-of-File ====

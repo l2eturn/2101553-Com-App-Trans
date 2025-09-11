@@ -1,0 +1,123 @@
+---
+title: "Comp App Trans AY2024 Homework"
+output:
+  html_document:
+    df_print: paged
+---
+
+## ==== First things first ====
+
+Set working directory and call packages.
+
+```{r}
+# Check current working directory  
+getwd()
+# Set working directory
+"C:/Users/Terxzera/Desktop/R_lang/chula_comp_app_trans/hw"
+# Call required packages, ex. "readxl", "tidyverse"
+if(!require(readxl)){install.packages("readxl")}
+if(!require(tidyverse)){install.packages("tidyverse")}
+
+
+```
+
+## ==== Question 1 ====
+
+กำหนดให้ vector ชื่อ my_friends เก็บชื่อของเพื่อน 8 คน ชื่อ Ann, Bob, Carol, Dan, Eve, Frank, George และ Hank ตามลำดับ
+
+**Step 1:** สร้าง vector ชื่อ friend_ages เพื่อเก็บอายุของเพื่อน 8 คนข้างต้น ซึ่งมีอายุ 27, 35, 25, 29, 32, 26, 28 และ 31 ปี ตามลำดับ (0.5 คะแนน)
+
+**Step 2:** ทำให้แต่ละ element ใน vector ชื่อ friend_ages มี label กำกับเป็นชื่อของเพื่อแต่ละคน (0.5 คะแนน)
+
+**Step 3:** สร้าง logical vector ชื่อ are_married เพื่อระบุสถานะของเพื่อนทั้ง 6 คน ว่าแต่งงานแล้วหรือยัง โดย Ann, Carol และ Dan แต่งงานแล้ว (0.5 คะแนน)
+
+**Step 4:** เขียน 1 คำสั่งเพื่อแสดงว่าเพื่อนคนใดที่ยังไม่ได้แต่งงาน (0.5 คะแนน)
+
+**Step 5:** เขียน 1 คำสั่งเพื่อแสดงทั้งชื่อและอายุของเพื่อนคนที่มีอายุมากกว่าอายุเฉลี่ย (0.5 คะแนน)
+
+**Step 6:** สร้าง factor ชื่อ friend_sex เพื่อระบุเพศของเพื่อนทั้ง 8 คน โดย Ann, Carol, Eve เพศหญิง (female) ในขณะที่ Bob, Dan, Frank, George, Hank เพศชาย (male) โดยกำหนดให้ลำดับใน factor เป็น male ตามด้วย female (0.5 คะแนน)
+
+**Step 7:** เขียน 1 คำสั่งเพื่อนับจำนวนเพื่อนจำแนกตามเพศ (0.5 คะแนน)
+
+**Step 8:** สร้าง data frame ชื่อ friends_data เพื่อรวบรวมข้อมูลของเพื่อนทั้ง 8 คน โดยมี 4 คอลัมน์ ได้แก่ ชื่อ (Name) อายุ (Age) เพศ (Sex) สถานะการแต่งงาน (Status) (0.5 คะแนน)
+
+**Step 9:** เพิ่มคอลัมน์ที่ 5 ใน data frame ชื่อ friends_data โดยระบุส่วนสูง (Height) ของเพื่อนแต่ละคน เท่ากับ 165, 180, 162, 175, 169, 172, 168 และ 185 ตามลำดับ (0.5 คะแนน)
+
+**Step 10:** คำนวณหาอายุเฉลี่ยและความสูงเฉลี่ยของเพื่อนจำแนกตามเพศ และบันทึกผลใน object ชื่อ mean_data (0.5 คะแนน)
+
+friends_data \<- data.frame(
+
+Name = my_friends,
+
+Age = friend_ages,
+
+Sex = friend_sex,
+
+Status = ifelse(are_married, "Married", "Single")
+
+)
+
+```{r Question 1}
+# ข้อมูลเริ่มต้น
+my_friends <- c("Ann", "Bob", "Carol", "Dan", "Eve", "Frank", "George", "Hank")
+
+# Step 1
+friend_ages <- c(27, 35, 25, 29, 32, 26, 28, 31)
+print(friend_ages)
+
+# Step 2
+names(friend_ages) <- my_friends
+print(friend_ages)
+
+
+# Step 3
+are_married <- c(TRUE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE)
+print(are_married)
+
+
+# Step 4
+print(my_friends[!are_married])
+
+# Step กว่าอายุเฉลี่ย
+print(friend_ages[friend_ages > mean(friend_ages)])
+#   Bob   Eve  Hank 
+#    35    32    31 
+
+
+# Step 6
+friend_sex <- factor(c("female", "male", "female", "male", "female", "male", "male", "male"),levels = c("male", "female"))
+print(friend_sex)
+
+
+# Step 7
+print(table(friend_sex))
+# friend_sex
+#   male female 
+#      5      3 
+
+
+# Step 8
+friends_data <- data.frame(
+  Name = my_friends,
+  Age = friend_ages,
+  Sex = friend_sex,
+  Status = ifelse(are_married, "Married", "Single")
+)
+print(friends_data)
+
+
+# Step 9
+friends_data$Height <- c(165, 180, 162, 175, 169, 172, 168, 185)
+print(friends_data)
+
+# Step 10
+mean_data <- aggregate(cbind(Age, Height) ~ Sex, data = friends_data, FUN = mean)
+print(mean_data)
+
+```
+
+Your name:
+
+Student ID:6730525021
+
+==== End-of-File ====
