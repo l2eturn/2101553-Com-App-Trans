@@ -41,6 +41,9 @@ setwd("C:/Users/Terxzera/Desktop/CUCE_CAT/chula_comp_app_trans/lecture")
 # Call required packages, ex. "readxl", "tidyverse"
 install.packages("readxl")
 install.packages("tidyverse")
+library(readxl)
+library(tidyverse)
+if (!require(tidyverse)[install.packages("tidyverse")])
 ```
 
 ## ==== Read Data in R ====
@@ -48,20 +51,21 @@ install.packages("tidyverse")
 ### Read CSV (Comma Separated Value) file
 
 ```{r Read CSV file}
-library(readr) 
+library(readr)
 # Read CSV file "RenSteve.csv" with `read_csv`
-ClassData <- read.csv("RenSteve.csv")
+#ClassData <- read.csv("C:/Users/Terxzera/Desktop/CUCE_CAT/chula_comp_app_trans/lecture/Data/RenSteve.csv")
+ClassData <- read_csv("./Data/RenSteve.csv")
 # Use `spec()` to retrieve the full column specification for this data()
 spec(ClassData)
-# Read CSV file with `read.csv` and `read.table`
-ClassData2 <- 
-ClassData3 <-  
+# Read CSV file with `read.csv`
+ClassData2 <- read.csv("./Data/RenSteve.csv",header = F)
+#ClassData3 <- read.csv
 # Read CSV file from Dropbox (MUST edit dl=0 to dl=1!!)
 # URL: https://www.dropbox.com/scl/fi/gg5okzhny0wjejrgw066s/sales.csv?rlkey=qggpmjmyfh2w8e0r3wt0tmsbd&dl=0
-df_sales <- 
+df_sales <- read.csv("https://www.dropbox.com/scl/fi/gg5okzhny0wjejrgw066s/sales.csv?rlkey=qggpmjmyfh2w8e0r3wt0tmsbd&dl=1")
 # Read shared file from OneDrive  (MUST edit "embed" to "download"!!)
 # URL: https://onedrive.live.com/embed?resid=B83741508FA07690%211290&authkey=!AEBphFQulUSB8HQ
-df_sales2 <-
+df_sales2 <- read.csv("https://onedrive.live.com/download?resid=B83741508FA07690%211290&authkey=!AEBphFQulUSB8HQ")
 
 # Another method
 if(!require(stringr)){install.packages("stringr")}
@@ -75,15 +79,16 @@ test_Thai <- read_tsv(import_url)
 ### Read Excel file
 
 ```{r Read Excel file}
+library(readr)
 # Read Excel file "RenSteve.xlsx" with `read_excel`
-ClassData4 <- 
+ClassData4 <- read_excel("./Data/RenSteve.xlsx")
 # Assign "range of data" to be read
 # File: TopMovies.xlsx
 # Range: C5:F55
-TopMovies <- 
+TopMovies <- read_excel("./Data/TopMovies.xlsx", range = "C5:F55")
 # Excel with multiple sheets
 # File: multi.xlsx
-df_drinks <- 
+df_drinks <- read_excel("./Data/multi.xlsx", sheet = "drinks")
 df_accident <- 
 # Read Excel file from Dropbox
 tempURL <- "https://www.dropbox.com/s/6un9tfrz6vy74fq/RenSteve.xlsx?dl=1"
@@ -96,9 +101,10 @@ my.data <- read_excel("local.xlsx", col_names = TRUE, col_types = "text")
 ### Save data frame to CSV file
 
 ```{r Save data frame to CSV file}
+library(readr)
 # Save data frame to CSV file with "write.csv" or "write_csv"
 # Use write.csv
-
+write.csv(df_drinks, file = "test1.csv")
 # Use write_csv
 # Require library(readr)
 
@@ -128,8 +134,8 @@ df <- data.frame("Age" = c(21, 22, 20, 19, 18, 23),
 str(df)
 
 # Export output to .xlsx file
-
-
+if(!require(writexl)){install.packages("writexl")}
+write_xlsx(df,"name_ages.xlsx")
 ```
 
 ## ==== Data Cleaning in R ====
@@ -142,11 +148,11 @@ It is also possible to use the `slice()` function from the package `dplyr` to de
 
 ```{r To delete a row of data frame}
 # Read Excel file "play_data.xlsx" with "read_excel"
-play_data <- 
+play_data <- read_excel("./Data/play_data.xlsx")
 # Delete the second row
-
+play_data[-2,]
 # Delete the 5th to 7th rows 
-
+play_data[-c(5:7),]
 # To remove 1st to 4th rows using the slice() function
 
 ```
@@ -169,9 +175,9 @@ Note that %\>% is called a "Pipeline", which means "then".
 
 ```{r using the filter() function}
 # Delete the data with first name "James"
-play_data2 <-
+play_data2 <- play_data %>% filter(First_Name != "James")
 # Delete the data with first name "James" and all "fifth" day
-play_data3 <-
+play_data3 <- play_data2 %>% filter(Day != "Fifth")
 
 ```
 
@@ -185,10 +191,12 @@ Alternatively, we can remove all rows with NA in the data frame using the `drop_
 
 ```{r Remove the missing values (NA)}
 # Use the `na.omit()` function
-play_data4 <- 
-# Use the `drop_na()` function in the  package `tidyr`
-play_data5 <- 
+play_data4 <- na.omit(play_data)
 
+mean(play_data4$RT)
+# Use the `drop_na()` function in the  package `tidyr`
+play_data5 <- play_data %>% drop_na()
+mean(play_data5$RT)
 # Create test data
 student.data <- data.frame(student = c("Ben","Jena","Jay","Lek","Bruce"),
                 gender = c("M","F","F",NA,"M"),
@@ -198,21 +206,22 @@ student.data <- data.frame(student = c("Ben","Jena","Jay","Lek","Bruce"),
 student.data$score3[student.data$score3 == -99999] <- NA
 student.data
 # To remove all data with NA
-new.student.data <-
+new.student.data <- student.data %>% drop_na()
 # Use the `complete.cases` function
-student.data1 <- 
-  
-student.data2 <- 
+complete.cases(student.data)
+student.data1 <- student.data[complete.cases(student.data),]
+student.data2 <- student.data[!complete.cases(student.data),]
 
 # Check only "score1","score2" and "score3"
-student.data3 <- 
+student.data3 <-student.data[complete.cases(student.data[,c(3,4,5)]),]
   
-student.data4 <- 
+student.data4 <-  
 
 # To replace NA with the mean of known data
-which(is.na(student.data$score1))
-student.data$score1[which(is.na(student.data$score1))] <- 
-
+a <-  which(is.na(student.data$score1))
+a
+student.data$score1[which(is.na(student.data$score1))] <- mean(student.data$score1, na.rm = T)
+student.data
 ```
 
 ### How to remove duplicate rows and columns
@@ -233,17 +242,18 @@ example_df <- data.frame(FName = c('Steve', 'Steve', 'Erica', 'John', 'Brody', '
                          Gender = c('M', 'M', 'F', 'M', 'M', 'F', 'F', 'M'),
                          Gender = c('M', 'M', 'F', 'M', 'M', 'F', 'F', 'M'))
 # Remove duplicated rows from data frame
-example_df.un <- 
-  
+!duplicated(example_df)
+
+example_df.un <- example_df[!duplicated(example_df),]
+example_df.un
 # Remove duplicate rows using the unique() function
-examp_df <- 
-  
+examp_df <- unique(example_df)
+  examp_df
 # Drop duplicated columns
 ex_df.un <- 
   
 # Drop duplicates with the distinct() function
-ex_df.remove <- 
-  
+ex_df.remove <- examp_df %>% distinct(Age, .keep_all = T)
 # Remove duplicate rows based on the "Age" column
 # The .keep_all argument to keep all the columns in the data frame. 
 
