@@ -1,0 +1,544 @@
+---
+title: "Data Visualization"
+author: "Pongsun B."
+date: "2024-09-03"
+output:
+  html_document: default
+  pdf_document: default
+header-includes:
+  - \pagenumbering{gobble}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# ==== First things first ====
+# Set working directory and call packages.
+getwd()
+
+# Call required packages, ex. "readxl", "tidyverse"
+if(!require(readxl)){install.packages("readxl")}
+if(!require(tidyverse)){install.packages("tidyverse")}
+
+```
+
+## Introduction
+
+Graphics is a great strength of R. The `graphics` package is part of the standard distribution and contains many useful functions for creating a variety of graphic displays. The base functionality has been expanded and made easier with `ggplot2`, part of the tidyverse of packages. In this chapter we will focus on examples using `ggplot2`, and we will occasionally suggest other packages. In this chapter’s See Also sections we mention functions in other packages that do the same job in a different way. We suggest that you explore those alternatives if you are dissatisfied with what’s offered by `ggplot2` or base graphics.
+
+Graphics is a vast subject, and we can only scratch the surface here. Winston Chang’s [*R Graphics Cookbook, 2nd Edition*](http://shop.oreilly.com/product/0636920063704.do), is part of the O’Reilly Cookbook series and walks through many useful recipes with a focus on `ggplot2`. If you want to delve deeper, we recommend *R Graphics* by Paul Murrell (Chapman & Hall, 2006). *R Graphics* discusses the paradigms behind R graphics, explains how to use the graphics functions, and contains numerous examples—including the code to re-create them. Some of the examples are pretty amazing.
+
+## “Long” Versus “Wide” Data with ggplot
+
+One of the first sources of confusion for new `ggplot` users is that they are inclined to reshape their data to be “wide” before plotting it. “Wide” here means every variable they are plotting is its own column in the underlying data frame. This is an approach that many users develop while using Excel and then bring with them to R. `ggplot` works most easily with “long” data where additional variables are added as rows in the data frame rather than columns. The great side effect of adding more measurements as rows is that any properly constructed `ggplot` graphs will automatically update to reflect the new data without changing the `ggplot` code. If each additional variable were added as a column, then the plotting code would have to be changed to introduce additional variables. This idea of “long” versus “wide” data will become more obvious in the examples in the rest of this chapter.
+
+## "ggplot2" basics
+
+While the package is called `ggplot2`, the primary plotting function in the package is called `ggplot`. It is important to understand the basic pieces of a `ggplot2` graph. When we pass data into `ggplot`, the graph is created by stacking together small phrases that describe some aspect of the plot. This stacking together of phrases is part of the “grammar of graphics” ethos (that’s where the `gg` comes from). To learn more, you can read [“A Layered Grammar of Graphics”](http://vita.had.co.nz/papers/layered-grammar.pdf) written by `ggplot2` author Hadley Wickham. The “grammar of graphics” concept originated with Leland Wilkinson, who articulated the idea of building graphics up from a set of primitives (i.e., verbs and nouns). With `ggplot`, the underlying data need not be fundamentally reshaped for each type of graphical representation. In general, the data stays the same and the user then changes syntax slightly to illustrate the data differently. This is significantly more consistent than base graphics, which often require reshaping the data in order to change the way it is visualized.
+
+As we talk about `ggplot` graphics, it’s worth defining the components of a `ggplot` graph:
+
+**`geometric object functions`**
+
+:   These are geometric objects that describe the type of graph being created. These start with `geom_` and examples include `geom_line`, `geom_boxplot`, and `geom_point,` along with dozens more.
+
+**`aesthetics`**
+
+:   The aesthetics, or aesthetic mappings, communicate to `ggplot` which fields in the source data get mapped to which visual elements in the graphic. This is the `aes` line in a `ggplot` call.
+
+**`stats`**
+
+:   Stats are statistical transformations that are done before displaying the data. Not all graphs will have stats, but a few common stats are `stat_ecdf` (the empirical cumulative distribution function) and `stat_identity`, which tells `ggplot` to pass the data without doing any stats at all.
+
+**`facet functions`**
+
+:   Facets are subplots where each small plot represents a subgroup of the data. The faceting functions include `facet_wrap` and `facet_grid`.
+
+**`themes`**
+
+:   Themes are the visual elements of the plot that are not tied to data. These might include titles, margins, table of contents locations, or font choices.
+
+**`layer`**
+
+:   A layer is a combination of data, aesthetics, a geometric object, a stat, and other options to produce a visual layer in the `ggplot` graphic.
+
+```{r Simple Plot Example, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+df <- data.frame(x = 1:5, y = 1:5)
+
+ggplot(df, aes(x, y)) +
+  geom_point()
+
+ggplot(df, aes(x, y)) +
+  geom_point() +
+  labs(
+    title = "Simple Plot Example",
+    subtitle = "with a subtitle",
+    x = "x-values",
+    y = "y-values"
+  ) +
+  theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+
+```
+
+## ====Scatter Plot====
+
+**A scatter plot** is a common first attack on a new dataset. It’s a quick way to see the relationship, if any, between *x* and *y*.
+
+We want to create a scatter plot of the paired observations: (*x*~1~, *y*~1~), (*x*~2~, *y*~2~), …, (*x~n~*, *y~n~*). We can plot the data by calling `ggplot`, passing in the data frame, and invoking a geometric point function:
+
+```         
+ggplot(df, aes(x, y)) +
+  geom_point()
+```
+
+In this example, `df` is the data frame and the *x* and *y* data are in fields named `x` and `y`, which we pass to the aesthetic in the call `aes(x, y)`.
+
+Plotting with `ggplot` requires telling `ggplot` what data frame to use, then what type of graph to create, and which aesthetic mapping (`aes`) to use. The `aes` in this case defines which field from `df` goes into which axis on the plot. Then the command `geom_point` communicates that you want a point graph, as opposed to a line or other type of graphic.
+
+In `ggplot`, you build up the elements of the graph by connecting the parts with the plus sign, `+`. So we add further graphical elements by stringing together phrases.
+
+We use the built-in `mtcars` dataset to illustrate plotting horsepower (`hp`) on the x-axis and fuel economy (`mpg`) on the y-axis.
+
+```{r Scatter plot, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ggplot(mtcars, aes(hp, mpg)) +
+  geom_point()
+
+```
+
+#### Adding a Title and Labels
+
+With `ggplot`, we add a `labs` element that controls the labels for the title and axes.
+
+When calling `labs` in `ggplot`, specify:
+
+**`title`**
+
+:   The desired title text
+
+**`x`**
+
+:   x-axis label
+
+**`y`**
+
+:   y-axis label
+
+```{r Scatter plot with title and labels, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Adding a Title and Labels
+ggplot(mtcars, aes(hp, mpg)) +
+  geom_point() +
+  labs(title = "Cars: Horsepower vs. Fuel Economy",
+       x = "HP",
+       y = "Economy (miles per gallon)")
+
+```
+
+#### Adding (or Removing) a Grid
+
+With `ggplot` background grids come as a default. However, we can alter the background grid using the `theme` function or by applying a prepackaged theme to our graph.
+
+```         
+ggplot(df) +
+  geom_point(aes(x, y)) +
+  theme(panel.background = element_rect(fill = "white", colour = "grey50"))
+```
+
+`ggplot` fills in the background with a grey grid by default. So you may find yourself wanting to remove that grid completely or change it to something else. Let’s create a `ggplot` graphic and then incrementally change the background style.
+
+The background shading in a `ggplot` graphic is actually three different graph elements:
+
+`panel.grid.major`: These are white by default and heavy.
+
+`panel.grid.minor`: These are white by default and light.
+
+`panel.background`: This is the background that is grey by default.
+
+If we set the background as `element_blank`, then the major and minor grids are there, but they are white on white so we can’t see them.
+
+If we wanted to show the background grid with unusual patterns for illustration, it’s as easy as setting its components to a color and setting a line type.
+
+```{r Grid, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+g1 <- ggplot(mtcars, aes(hp, mpg)) +
+  geom_point() +
+  labs(title = "Cars: Horsepower vs. Fuel Economy",
+       x = "HP",
+       y = "Economy (miles per gallon)") +
+  theme(panel.background = element_blank())
+g1
+
+# Set the doted black lines as the major grid and the dashed grey lines as the minor grid
+g2 <- g1 + theme(panel.grid.major =
+                   element_line(color = "black", linetype = 3)) + 
+  # linetype = 3 is dash
+  theme(panel.grid.minor =
+          element_line(color = "darkgrey", linetype = 4)) 
+  # linetype = 4 is dot dash
+g2
+
+```
+
+#### Applying a Theme to a ggplot Figure
+
+`ggplot` supports *themes*, which are collections of settings (preset collection of colors, styles, and formatting) for your figures. To use one of the themes, just add the desired theme function to your `ggplot` with a `+`:
+
+```         
+ggplot(df, aes(x, y)) +
+  geom_point() +
+  theme_bw()
+```
+
+The `ggplot2` package contains the following themes:
+
+```         
+theme_bw()
+theme_dark() 
+theme_classic()
+theme_gray()
+theme_linedraw()
+theme_light()
+theme_minimal()
+theme_test()
+theme_void()
+```
+
+In addition to the themes included in `ggplot2`, there are packages, like `ggtheme`, that include themes to help you make your figures look more like the figures found in popular tools and publications such as Stata or *The Economist*.
+
+Let’s start with a simple plot and then show how it looks with a few of the built-in themes.
+
+```{r Theme, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+p <- ggplot(mtcars, aes(x = disp, y = hp)) +
+  geom_point() +
+  labs(title = "mtcars: Displacement vs. Horsepower",
+       x = "Displacement (cubic inches)",
+       y = "Horsepower")
+p
+
+# Let’s create the same plot multiple times, but apply a different theme to each one:
+
+p + theme_bw()
+p + theme_classic()
+p + theme_minimal()
+
+```
+
+#### Creating a Scatter Plot of Multiple Groups
+
+You have data in a data frame with multiple observations per record: *x*, *y*, and a factor *f* that indicates the group. You want to create a scatter plot of *x* and *y* that distinguishes among the groups.
+
+With `ggplot` we control the mapping of shapes to the factor `f` by passing `shape = f` to the `aes`.
+
+```         
+ggplot(df, aes(x, y, shape = f)) +
+  geom_point()
+```
+
+Plotting multiple groups in one scatter plot creates an uninformative mess unless we distinguish one group from another. We make this distinction in `ggplot` by setting the `shape` parameter of the `aes` function.
+
+The built-in `iris` dataset contains paired measures of `Petal.Length` and `Petal.Width`. Each measurement also has a `Species` property indicating the species of the flower that was measured.
+
+The graphic would be far more informative if we distinguished the points by species. In addition to distinguishing species by shape, we could also differentiate by color. We can add `shape = Species` and `color = Species` to our `aes` call, to get each species with a different shape and color.
+
+```{r Scatter Plot of Multiple Groups, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+data(iris)
+
+# plot all the data at once
+ggplot(data = iris,
+       aes(x = Petal.Length,
+           y = Petal.Width)) +
+  geom_point()
+
+ggplot(data = iris,
+       aes(
+         x = Petal.Length,
+         y = Petal.Width,
+         shape = Species,
+         color = Species
+       )) +
+  geom_point()
+
+# ggplot conveniently sets up a legend for you as well, which is handy.
+
+```
+
+#### Adding (or Removing) a Legend
+
+*Legend* is the little box that decodes the graphic for the viewer.
+
+In most cases `ggplot` will add the legends automatically. If you do not have explicit grouping in the `aes`, then `ggplot` will not show a legend by default. If we want to force `ggplot` to show a legend, we can set the shape or line type of our graph to a constant. `ggplot` will then show a legend with one group. We then use `guides` to guide `ggplot` in how to label the legend.
+
+Adding legends to `ggplot` when there is no grouping is an exercise in “tricking” `ggplot` into showing the legend by passing a string to a grouping parameter in `aes`. While this will not change the grouping (as there is only one group), it will result in a legend being shown with a name.
+
+Then we can use `guides` to alter the legend title. It’s worth noting that we are not changing anything about the data, just exploiting settings in order to coerce `ggplot` into showing a legend when it typically would not.
+
+```{r Legend, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+g_iris <- ggplot(data = iris,
+       aes(x = Petal.Length,
+           y = Petal.Width, 
+           shape = "Observation")) +
+  geom_point() +
+  guides(shape = guide_legend(title = "My Legend Title")) 
+g_iris
+
+```
+
+One of the huge benefits of `ggplot` is its very good defaults. Getting positions and correspondence between labels and their point types is done automatically, but can be overridden if needed. To remove a legend totally, we set `theme` parameters with `theme(legend.position = "none")`. In addition to `"none"` you can set the `legend.position` to be `"left"`, `"right"`, `"bottom"`, `"top"`, or a two-element numeric vector. Use a two-element numeric vector in order to pass `ggplot` specific coordinates of where you want the legend. If you’re using the coordinate positions, the values passed are between 0 and 1 for the *x* and *y* position, respectively.
+
+```{r Positioning Legend, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+g_iris2 <- ggplot(data = iris,
+            aes(
+              x = Petal.Length,
+              y = Petal.Width,
+              shape = Species,
+              color = Species
+            )) +
+  geom_point() +
+  theme(legend.position = "none")
+g_iris2
+
+# a legend positioned at the bottom
+g_iris2 + theme(legend.position = "bottom")
+
+# to put the legend in a specific location at 80% to the right and 20% up from the bottom
+g_iris2 + theme(legend.position = c(.8, .2))
+
+```
+
+In many aspects beyond legends, `ggplot` uses sane defaults but offers the flexibility to override them and tweak the details. You can find more details on `ggplot` options related to legends in the help for `theme` by typing `?theme` or looking in the `ggplot` [online reference material](http://ggplot2.tidyverse.org/reference/theme.html).
+
+#### Plotting the Regression Line of a Scatter Plot
+
+You are plotting pairs of data points, and you want to add a line that illustrates their linear regression.
+
+With `ggplot` there is no need to calculate the linear model first using the R `lm` function. We can instead use the `geom_smooth` function to calculate the linear regression inside of our `ggplot` call.
+
+If our data is in a data frame `df` and the *x* and *y* data are in columns `x` and `y`, we plot the regression line like this:
+
+```         
+ggplot(df, aes(x, y)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              formula = y ~ x,
+              se = FALSE)
+```
+
+The `se = FALSE` parameter tells `ggplot` not to plot the standard error bands around our regression line.
+
+Suppose we are modeling the `strongx` dataset found in the `faraway` package. We can create a linear model using the built-in `lm` function in R. We can predict the variable `crossx` as a linear function of `energy`.
+
+Notice that in the `geom_smooth` we use `x` and `y` rather than the variable names. `ggplot` has set the `x` and `y` inside the plot based on the aesthetic. Multiple smoothing methods are supported by `geom_smooth`. You can explore those, and other options in the help, by typing `?geom_smooth`.
+
+```{r Regression Line of a Scatter Plot, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+if(!require(faraway)){install.packages("faraway")}
+data(strongx)
+
+# A simple scatter plot of our data
+g_reg <- ggplot(strongx, aes(x = energy, y = crossx)) +
+  geom_point()
+g_reg
+
+# Plot the regression line along with the data
+g_reg + geom_smooth(method = "lm", 
+                formula = y ~ x)
+
+# Turn the confidence bands off by adding the se = FALSE option
+g_reg + geom_smooth(method = "lm",
+                formula = y ~ x,
+                se = FALSE)
+
+```
+
+If we had a line we wanted to plot that was stored in another R object, we could use `geom_abline` to plot the line on our graph. In the following example we pull the intercept term and the slope from the regression model `m` and add those to our graph.
+
+```{r geom_abline, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+m <- lm(crossx ~ energy, data = strongx)
+
+ggplot(strongx, aes(energy, crossx)) +
+  geom_point() +
+  geom_abline(
+    intercept = m$coefficients[1],
+    slope = m$coefficients[2]
+  )
+
+```
+
+The `geom_abline` method can be handy if you are plotting a line from a source other than a simple linear model.
+
+#### Creating One Scatter Plot for Each Group
+
+Your dataset contains (at least) two numeric variables and a factor or character field defining a group. You want to create several scatter plots for the numeric variables, with one scatter plot for each level of the factor or character field.
+
+This kind of plot is called a *conditioning plot* in `ggplot` and is created by adding `facet_wrap`. In this example we use the data frame `df`, which contains three columns: *x*, *y*, and *f*, with *f* being a factor (or a character string).
+
+```         
+ggplot(df, aes(x, y)) +
+  geom_point() +
+  facet_wrap( ~ f)
+```
+
+Conditioning plots (coplots) are another way to explore and illustrate the effect of a factor or to compare different groups to each other.
+
+The `Cars93` dataset contains 27 variables describing 93 car models as of 1993. Two numeric variables are `MPG.city`, the miles per gallon in the city, and `Horsepower`, the engine horsepower. One categorical variable is `Origin`, which can be USA or non-USA according to where the model was built.
+
+Exploring the relationship between MPG and horsepower, we might ask: *Is there a different relationship for USA models and non-USA models?*
+
+```{r Conditioning plots, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+data(Cars93, package = "MASS")
+ggplot(Cars93, aes(MPG.city, Horsepower)) +
+  geom_point() +
+  facet_wrap( ~ Origin)
+
+```
+
+If we really crave that 300-horsepower monster, then we’ll have to buy a car built in the USA; but if we want high MPG, we have more choices among non-USA models. These insights could be teased out of a statistical analysis, but the visual presentation reveals them much more quickly.
+
+Note that using `facet` results in subplots [with the same x- and y-axis ranges]{.underline}. This helps ensure that visual inspection of the data is not misleading because of differing axis ranges.
+
+## ====Bar Chart====
+
+A common situation is to have a column of data that represents a group and then another column that represents a measure about that group. This format is “long” data because the data runs vertically instead of having a column for each group.
+
+Using the `geom_bar` function in `ggplot`, we can plot the heights as bars. If the data is already aggregated, we add `stat = "identity"` so that `ggplot` knows it needs to do no aggregation on the groups of values before plotting.
+
+```         
+ggplot(data = df, aes(x, y)) +
+  geom_bar(stat = "identity")
+```
+
+Let’s use the cars made by Ford in the `Cars93` data in an example.
+
+```{r Bar Chart (identity), warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ford_cars <- Cars93 %>%
+  filter(Manufacturer == "Ford") 
+
+ggplot(ford_cars, aes(Model, Horsepower)) +
+  geom_bar(stat = "identity")
+
+```
+
+This example uses `stat = "identity"`, which assumes that the heights of your bars are conveniently stored as a value in one field with only one record per column. That is not always the case, however. Often you have a vector of numeric data and a parallel factor or character field that groups the data, and you want to produce a bar chart of the group means or the group totals.
+
+Let’s work up an example using the built-in `airquality` dataset, which contains daily temperature data for a single location for five months. The data frame has a numeric `Temp` column and `Month` and `Day` columns. If we want to plot the mean temp by month using `ggplot`, we don’t need to precompute the mean; instead, we can have `ggplot` do that in the plot command logic. To tell `ggplot` to calculate the mean, we pass `stat = "summary", fun.y = "mean"` to the `geom_bar` command. We can also turn the month numbers into dates using the built-in constant `month.abb`, which contains the abbreviations for the months.
+
+```{r Bar Chart (general), warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+data(airquality)
+
+ggplot(airquality, aes(month.abb[Month], Temp)) +
+  geom_bar(stat = "summary", fun.y = "mean") +
+  labs(title = "Mean Temp by Month",
+       x = "",
+       y = "Temp (deg. F)")
+
+```
+
+You might notice the sort order on the months is alphabetical, which is not how we typically like to see months sorted.
+
+We can fix the sorting issue using a few functions from `dplyr` combined with `fct_inorder` from the `forcats` tidyverse package. To get the months in the correct order, we can sort the data frame by `Month`, which is the month number. Then we can apply `fct_inorder`, which will arrange our factors in the order they appear in the data.
+
+```{r Bar Chart (factor), warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+aq_data <- airquality %>%
+  arrange(Month) %>%
+  mutate(month_abb = fct_inorder(month.abb[Month]))
+
+ggplot(aq_data, aes(month_abb, Temp)) +
+  geom_bar(stat = "summary", fun.y = "mean") +
+  labs(title = "Mean Temp by Month",
+       x = "",
+       y = "Temp (deg. F)")
+
+```
+
+#### Adding Confidence Intervals to a Bar Chart
+
+Suppose you have a data frame `df` with columns `group`, which are group names; `stat`, which is a column of statistics; and `lower` and `upper`, which represent the corresponding limits for the confidence intervals. We can display a bar chart of `stat` for each `group` and its confidence intervals using the `geom_bar` combined with `geom_errorbar`.
+
+```         
+ggplot(df, aes(group, stat)) +
+  geom_bar(stat = "identity") +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = .2)
+```
+
+Most bar charts display [point estimates]{.underline}, which are shown by the heights of the bars, but rarely do they include confidence intervals. Our inner statisticians dislike this intensely. The point estimate is only half of the story; the confidence interval gives the full story.
+
+Fortunately, we can plot the error bars using `ggplot`. The hard part is calculating the intervals. In the previous examples, we calculated group means before plotting them. If we let `ggplot` do the calculations for us, we can use the built-in `mean_se` along with the `stat_summary` function to get the standard errors of the mean measures.
+
+```{r Bar Chart with Confidence Intervals, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ggplot(aq_data, aes(month_abb, Temp)) +
+  geom_bar(stat = "summary",
+           fun.y = "mean",
+           fill = "cornflowerblue") +
+  stat_summary(fun.data = mean_se, geom = "errorbar") +
+  labs(title = "Mean Temp by Month",
+       x = "",
+       y = "Temp (deg. F)")
+
+
+```
+
+Sometimes you’ll want to sort your columns in your bar chart in descending order based on their height. This can be a little bit confusing when you’re using summary stats in `ggplot`, but the secret is to use `mean` in the `reorder` statement to sort the factor by the mean of the temp. Note that the reference to `mean` in `reorder` is not quoted, while the reference to `mean` in `geom_bar` is quoted.
+
+```{r Sorted Bar Chart, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ggplot(aq_data, aes(reorder(month_abb, -Temp, mean), Temp)) +
+  geom_bar(stat = "summary",
+           fun.y = "mean",
+           fill = "tomato") +
+  stat_summary(fun.data = mean_se, geom = "errorbar") +
+  labs(title = "Mean Temp by Month",
+       x = "",
+       y = "Temp (deg. F)")
+
+```
+
+You may look at this example and wonder, “Why didn’t they just use `reorder(month_abb, Month)` in the first example instead of that sorting business with `forcats::fct_inorder` to get the months in the right order?” Well, we could have. But sorting using `fct_inorder` is a design pattern that provides flexibility for more complicated things. Plus it’s quite easy to read in a script. Using `reorder` inside the `aes` is a bit more dense and hard to read later. But either approach is reasonable.
+
+#### Coloring a Bar Chart
+
+With `gplot` we add the `fill =` call to our `aes` and let `ggplot` pick the colors for us:
+
+```         
+ggplot(df, aes(x, y, fill = group))
+```
+
+In `ggplot` we can use the `fill` parameter in `aes` to tell `ggplot` what field to base the colors on. If we pass a numeric field to `ggplot`, we will get a continuous gradient of colors; and if we pass a factor or character field to `fill`, we will get contrasting colors for each group. Here we pass the character name of each month to the `fill` parameter.
+
+We can define the colors in the bar chart by calling `scale_fill_brewer(palette="Paired")`. The `"Paired"` color palette comes, along with many other color palettes, in the package `RColorBrewer`.
+
+If we wanted to change the color of each bar based on the temperature, we can’t just set `fill = Temp`—as might seem intuitive—because `ggplot` would not understand we want the mean temperature after the grouping by month. So the way we get around this is to access a special field inside of our graph called `..y..`, which is the calculated value on the y-axis. But we don’t want the legend labeled `..y..` so we add `fill = "Temp"` to our `labs` call in order to change the name of the legend.
+
+```{r Colored Bar Chart, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ggplot(data = aq_data, aes(month_abb, Temp, fill = month_abb)) +
+  geom_bar(stat = "summary", fun.y = "mean") +
+  labs(title = "Mean Temp by Month",
+       x = "",
+       y = "Temp (deg. F)") +
+  scale_fill_brewer(palette = "Paired")
+
+# Color based on the temperature
+ggplot(airquality, aes(month.abb[Month], Temp, fill = ..y..)) +
+  geom_bar(stat = "summary", fun.y = "mean") +
+  labs(title = "Mean Temp by Month",
+       x = "",
+       y = "Temp (deg. F)",
+       fill = "Temp")
+
+```
+
+End-of-File\
+Pongsun B.\
+2024-09-12

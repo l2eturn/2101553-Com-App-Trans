@@ -1,0 +1,501 @@
+---
+title: "Data Visualization"
+author: "Pongsun B."
+date: "2024-09-19"
+output:
+  html_document: default
+  pdf_document: default
+header-includes:
+  - \pagenumbering{gobble}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# ==== First things first ====
+# Set working directory and call packages.
+getwd()
+
+# Call required packages, ex. "readxl", "tidyverse"
+if(!require(readxl)){install.packages("readxl")}
+if(!require(tidyverse)){install.packages("tidyverse")}
+if(!require(devtools)){install.packages("devtools")}
+devtools::install_github("thomasp85/patchwork")
+
+```
+
+## ====Line Plot====
+
+You have paired observations in a data frame: (*x*~1~, *y*~1~), (*x*~2~, *y*~2~), …, (*x~n~*, *y~n~*) and want to plot a series of line segments that connect the data points.
+
+With `ggplot` we can use `geom_point` to plot the points:
+
+```         
+ggplot(df, aes(x, y)) +
+  geom_point()
+```
+
+Since `ggplot` graphics are built up, element by element, we can have both a point and a line in the same graphic very easily by having two geoms:
+
+```         
+ggplot(df, aes(x , y)) +
+  geom_point() +
+  geom_line()
+```
+
+To illustrate, let’s look at some example US economic data that comes with `ggplot2`. This example data frame has a column called `date`, which we’ll plot on the x-axis and a field `unemploy`, which is the number of unemployed people.
+
+```{r Line segments connecting points, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+data(economics)
+
+ggplot(economics, aes(date , unemploy)) +
+  geom_point() +
+  geom_line()
+
+```
+
+#### Changing the Type, Width, or Color of a Line
+
+`ggplot` uses the `linetype` parameter for controlling the appearance of lines:
+
+-   `linetype = "solid"` or `linetype = 1` (default)
+
+-   `linetype = "dashed"` or `linetype = 2`
+
+-   `linetype = "dotted"` or `linetype = 3`
+
+-   `linetype = "dotdash"` or `linetype = 4`
+
+-   `linetype = "longdash"` or `linetype = 5`
+
+-   `linetype = "twodash"` or `linetype = 6`
+
+-   `linetype = "blank"` or `linetype = 0` (inhibits drawing)
+
+You can change the line characteristics by passing `linetype`, `col`, and/or `size` as parameters to the `geom_line`. So if we want to change the line type to dashed, red, and heavy, we could pass the `linetype`, `col`, and `size` params to `geom_line`:
+
+```         
+ggplot(df, aes(x, y)) +
+  geom_line(linetype = 2,
+            size = 2,
+            col = "red")
+```
+
+```{r Customizing a line, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Let’s set up some example data:
+x <- 1:10
+y1 <- x**1.5
+y2 <- x**2
+y3 <- x**2.5
+df_wide <- data.frame(x, y1, y2, y3)
+
+# Use gather to create a new column named bucket and put the column names in there while keeping our x and y variables.
+df_long <- gather(df_wide, bucket, value_y, -x)
+
+# Pass bucket to the col parameter and get multiple lines, each a different color:
+ggplot(df_long, aes(x, value_y, col = bucket)) +
+  geom_line()
+
+# It’s straightforward to vary the line weight by a variable by passing a numerical variable to size:
+ggplot(df_wide, aes(x, y2, size = y2)) +
+  geom_line() +
+  scale_size(name = "Thickness based on y2")
+
+```
+
+#### Plotting Multiple Datasets
+
+We can add multiple data frames to a `ggplot` figure by creating an empty plot and then adding two different geoms to the plot:
+
+```         
+ggplot() +
+  geom_line(data = df1, aes(x1, y1)) +
+  geom_line(data = df2, aes(x2, y2))
+```
+
+This code uses `geom_line` but these could be any geom.
+
+Typically we would pass the data frame directly into the `ggplot` function call. Since we want two geoms with two different data sources, we will initiate a plot with `ggplot` and then add in two calls to `geom_line`, each with its own data source.
+
+```{r Plotting multiple datasets, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+n <- 20
+
+x1 <- 1:n
+y1 <- rnorm(n, 0, .5)
+df1 <- data.frame(x1, y1)
+
+x2 <- (.5 * n):((1.5 * n) - 1)
+y2 <- rnorm(n, 1, .5)
+df2 <- data.frame(x2, y2)
+
+ggplot() +
+  geom_line(data = df1, aes(x1, y1), color = "darkblue") +
+  geom_line(data = df2, aes(x2, y2), linetype = "dashed")
+
+```
+
+`ggplot` allows us to make multiple calls to different `geom_` functions, each with its own data source, if desired. Then `ggplot` will look at all the data we are plotting and adjust the ranges to accommodate all the data.
+
+#### Adding Vertical or Horizontal Lines
+
+To add a vertical or horizontal line to your plot (such as an axis through the origin or a pointer to a threshold), the `ggplot` functions `geom_vline` and `geom_hline` produce vertical and horizontal lines, respectively. The functions can also take `color`, `linetype`, and `size` parameters to set the line style.
+
+```{r Vertical or horizontal line, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ggplot(df1) +
+  aes(x = x1, y = y1) +
+  geom_point() +
+  geom_vline(
+    xintercept = 10,
+    color = "red",
+    linetype = "dashed",
+    size = 1.5) +
+  geom_hline(yintercept = 0, color = "blue")
+
+```
+
+A typical use of lines would be drawing regularly spaced lines. Suppose we have a sample of points, `samp`. First, we plot them with a solid line through the mean. Then we calculate and draw dotted lines at ±1 and ±2 standard deviations away from the mean. We can add the lines into our plot with `geom_hline`.
+
+```{r Mean and SD lines, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+samp <- rnorm(1000)
+samp_df <- data.frame(samp, x = 1:length(samp))
+
+mean_line <- mean(samp_df$samp)
+sd_lines <- mean_line + c(-2, -1, +1, +2) * sd(samp_df$samp)
+
+ggplot(samp_df) +
+  aes(x = x, y = samp) +
+  geom_point() +
+  geom_hline(yintercept = mean_line, color = "darkblue") +
+  geom_hline(yintercept = sd_lines, linetype = "dotted")
+
+```
+
+## ====Boxplot====
+
+To create a boxplot of your data, use `geom_boxplot` from `ggplot` to add a boxplot geom to a `ggplot` graphic. Using the `samp_df` data frame from the prior recipe, we can create a boxplot of the values in the `x` column.
+
+A boxplot provides a quick and easy visual summary of a dataset.
+
+-   The thick line in the middle is the median.
+
+-   The box surrounding the median identifies the first and third quartiles; the bottom of the box is Q1, and the top is Q3.
+
+-   The “whiskers” above and below the box show the range of the data, excluding outliers.
+
+-   The circles identify outliers. By default, an outlier is defined as any value that is farther than 1.5×IQR away from the box. (IQR is the *interquartile range*, or Q3–Q1.) In this example, there are a few outliers on the high side.
+
+```{r Boxplots, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ggplot(samp_df) +
+  aes(y = samp) +
+  geom_boxplot()
+
+# rotate the boxplot by flipping the coordinates
+ggplot(samp_df) +
+  aes(y = samp) +
+  geom_boxplot() +
+  coord_flip()
+
+```
+
+#### Creating One Boxplot for Each Factor Level
+
+If the dataset contains a numeric variable and a factor (or other catagorical text) and we want to create several boxplots of the numeric variable broken out by levels, with `ggplot` we pass the name of the categorical variable to the `x` parameter in the `aes` call. The resulting boxplot will then be grouped by the values in the categorical variable:
+
+```         
+ggplot(df) +
+  aes(x = factor, y = values) +
+  geom_boxplot()
+```
+
+This method is another great way to explore and illustrate the relationship between two variables. In this case, we want to know whether the numeric variable changes according to the level of a category.
+
+The `UScereal` dataset from the `MASS` package contains many variables regarding breakfast cereals. One variable is the amount of sugar per portion and another is the shelf position (counting from the floor). Cereal manufacturers can negotiate for shelf position, placing their product for the best sales potential.
+
+We wonder: Where do they put the high-sugar cereals?
+
+```{r Inspecting the shelf position of cereals, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+data(UScereal, package = "MASS")
+
+ggplot(UScereal) +
+  aes(x = as.factor(shelf), y = sugars) +
+  geom_boxplot() +
+  labs(
+    title = "Sugar Content by Shelf",
+    x = "Shelf",
+    y = "Sugar (grams per portion)"
+  )
+
+```
+
+The boxplots suggest that shelf #2 has the most high-sugar cereals. Could it be that this shelf is at eye level for young children who can influence their parents’ choice of cereals?
+
+Note that in the `aes` call we had to tell `ggplot` to treat the shelf number as a factor. Otherwise, `ggplot` would not react to the shelf as a grouping and print only a single boxplot.
+
+## ====Histogram====
+
+To create a histogram of your data, Use `geom_histogram`, and set `x` to a vector of numeric values.
+
+The `geom_histogram` function must decide how many cells (bins) to create for binning the data. In the following example, the default algorithm chose 30 bins. If we wanted fewer bins, we would include the `bins` parameter to tell `geom_histogram` how many bins we want.
+
+```{r Histogram, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Create a histogram of the MPG.city column taken from the Cars93 dataset
+data(Cars93, package = "MASS")
+
+ggplot(Cars93) +
+  geom_histogram(aes(x = MPG.city))
+
+ggplot(Cars93) +
+  geom_histogram(aes(x = MPG.city), bins = 15)
+
+```
+
+#### Adding a Density Estimate to a Histogram
+
+To add a curve into a histogram of your data to illustrate the apparent density, use the `geom_density` function to approximate the sample density.
+
+A histogram suggests the density function of your data, but it is rough. A smoother estimate could help you better visualize the underlying distribution. A *kernel density estimation* (KDE) is a smoother representation of univariate data.
+
+In `ggplot` we tell the `geom_histogram` function to use the `geom_density` function by passing it `aes(y = ..density..)`.
+
+The `Cars93` dataset contains 27 variables describing 93 car models as of 1993. Two numeric variables are `MPG.city`, the miles per gallon in the city, and `Horsepower`, the engine horsepower. One categorical variable is `Origin`, which can be USA or non-USA according to where the model was built.
+
+Exploring the relationship between MPG and horsepower, we might ask: *Is there a different relationship for USA models and non-USA models?*
+
+```{r Density estimate to a histogram, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+ggplot(Cars93) +
+  aes(x = MPG.city) +
+  geom_histogram(aes(y = ..density..), bins = 21) +
+  geom_density()
+
+# Take a sample from a gamma distribution and then plots the histogram and the estimated density
+
+samp_gamma <- rgamma(500, 2, 2)
+
+ggplot() +
+  aes(x = samp_gamma) +
+  geom_histogram(aes(y = ..density..), bins = 15) +
+  geom_density()
+
+```
+
+## ====Normal Quantile–Quantile Plot====
+
+It’s important to know if your data is normally distributed. A quantile–quantile (Q–Q) plot is a good first check.
+
+To create a *quantile–quantile* (Q–Q) plot of your data to verify how the data differs from a normal distribution, use the `stat_qq` and `stat_qq_line` functions to create a Q–Q plot that shows both the observed points as well as the Q–Q line.
+
+If the data had a perfect normal distribution, then the points would fall exactly on the diagonal line. Many points are close, especially in the middle section, but the points in the tails are pretty far off. Too many points are above the line, indicating a general skew to the left.
+
+The leftward skew might be cured by a logarithmic transformation.
+
+```{r QQ plot, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+df_qq <- data.frame(x = rnorm(100))
+
+ggplot(df_qq, aes(sample = x)) +
+  stat_qq() +
+  stat_qq_line()
+
+ggplot(Cars93, aes(sample = Price)) +
+  stat_qq() +
+  stat_qq_line()
+
+# Use a log transformation
+ggplot(Cars93, aes(sample = log(Price))) +
+  stat_qq() +
+  stat_qq_line()
+
+```
+
+Notice that the points in the new plot are much better behaved, staying close to the line except in the extreme left tail. It appears that `log(Price)` is approximately normal.
+
+## ====Miscellaneous====
+
+#### Plotting a Variable in Multiple Colors
+
+If you want to plot your data in multiple colors, typically to make the plot more informative, readable, or interesting, pass a color to a `geom_` function in order to produce colored output.
+
+Up to this in print you may see only black. Try it out on your own in order to see the graph in full color.
+
+The value of `color` can be:
+
+-   One color, in which case all data points are that color.
+
+-   A vector of colors, the same length as `x`, in which case each value of `x` is colored with its corresponding color.
+
+-   A short vector, in which case the vector of colors is recycled.
+
+The default color in `ggplot` is black. While it’s not very exciting, black is high contrast and easy for almost anyone to see. However, it is much more useful (and interesting) to vary the color in a way that illuminates the data.
+
+```{r Variable in multiple colors, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+df_color <- data.frame(x = rnorm(200), y = rnorm(200))
+
+ggplot(df_color) +
+  aes(x = x, y = y) +
+  geom_point(color = "blue")
+
+df_shade <- data.frame(
+  x = 1:100,
+  y = rnorm(100)
+)
+
+ggplot(df_shade) +
+  aes(x, y) +
+  geom_point()
+
+# Make it more interesting by creating a vector of "blue" and "red" values, according to the sign of x, and then plotting x using those colors
+
+shade <- if_else(df_shade$y >= 0, "blue", "red")
+
+ggplot(df_shade) +
+  aes(x, y) +
+  geom_point(color = shade)
+
+```
+
+The negative values are now plotted in red because the corresponding element of `colors` is `"red"`.
+
+#### Graphing a Function
+
+The `ggplot` function `stat_function` will graph a function across a range.
+
+It’s pretty common to want to plot a statistical function, such as a normal distribution, across a given range. The `stat_function` in `ggplot` allows us to do this. We need only supply a data frame with `x` value limits and `stat_function` will calculate the `y` values, and plot the results.
+
+`stat_function` can graph any function that takes one argument and returns one value.
+
+```{r Graphing a function, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+# Plot a sine wave across the range –3 to 3
+ggplot(data.frame(x = c(-3, 3))) +
+  aes(x) +
+  stat_function(fun = sin)
+
+# Plot a standard normal distribution across the range –3.5 to 3.5
+ggplot(data.frame(x = c(-3.5, 3.5))) +
+  aes(x) +
+  stat_function(fun = dnorm) +
+  ggtitle("Standard Normal Density")
+
+# Plot a damped sine wave across the range –3.5 to 3.5
+my_fun <- function(x) exp(-abs(x)) * sin(2*pi*x)
+
+ggplot(data.frame(x = c(-3.5, 3.5))) +
+  aes(x) +
+  stat_function(fun = my_fun) +
+  ggtitle("Dampened Sine Wave")
+
+```
+
+Notice that we use `ggtitle` to set the title. If setting multiple text elements in a `ggplot`, we use `labs` but when we’re just adding a title, `ggtitle` is more concise than `labs(title='Standard Normal Density')` although they accomplish the same thing. See `?labs` for more discussion of labels with `ggplot`.
+
+#### Displaying Several Figures on One Page
+
+There are a number of ways to put `ggplot` graphics into a grid, but one of the easiest to use and understand is `patchwork` by Thomas Lin Pedersen. `patchwork` is not currently available on CRAN, but you can install it from GitHub using the `devtools` package.
+
+Using `ggplot` and the `patchwork` package, we can create a 2x2 layout effect by creating four graphics objects and then print them using the `+` notation from `patchwork`.
+
+```{r Patchwork, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+library(patchwork)
+
+my_df <- data.frame(x = seq(from = 0, to = 6, length.out = 100))
+
+g1 <- ggplot(my_df) +
+  aes(x) +
+  stat_function(
+    fun = function(x)
+      dunif(x, min   = 2, max = 4)) +
+  ggtitle("Uniform")
+
+g2 <- ggplot(my_df) +
+  aes(x) +
+  stat_function(
+    fun = function(x)
+      dnorm(x, mean  = 3, sd = 1)) +
+  ggtitle("Normal")
+
+g3 <- ggplot(my_df) +
+  aes(x) +
+  stat_function(
+    fun = function(x)
+      dexp(x, rate  = 1 / 2)) +
+  ggtitle("Exponential")
+
+g4 <- ggplot(my_df) +
+  aes(x) +
+  stat_function(
+    fun = function(x)
+      dgamma(x, shape = 2, rate = 1)) +
+  ggtitle("Gamma")
+
+g1 + g2 + g3 + g4 + plot_layout(ncol = 2, byrow = TRUE)
+
+# Another methods
+x = seq(from = 0, to = 6, length.out = 100)
+my_df2 <- rbind(
+  data.frame(x = x, dist_name = "Uniform"    , y = dunif(x, min   = 2, max = 4)),
+  data.frame(x = x, dist_name = "Normal"     , y = dnorm(x, mean  = 3, sd = 1)),
+  data.frame(x = x, dist_name = "Exponential", y = dexp(x, rate  = 1/2)),
+  data.frame(x = x, dist_name = "Gamma"      , y = dgamma(x, shape = 2, rate = 1)))
+
+my_df2 <- my_df2 %>% 
+  mutate(dist_name = fct_inorder(dist_name))
+
+# Make a line plot like before, but use facet_wrap to create the grid
+ggplot(data = my_df2, aes(x = x, y = y)) +
+  geom_line() +
+  facet_wrap(~ dist_name)   # facet and wrap by the variable dist_name
+
+```
+
+To lay the images out in columns order, we could pass the `byrow = FALSE` to `plot_layout`:
+
+```         
+g1 + g2 + g3 + g4 + plot_layout(ncol = 2, byrow = FALSE)
+```
+
+However, a raw density plot is rarely useful or interesting by itself, and we often shade a region of interest. To handle this, we create the plot by first plotting the density and then creating a shaded region with the `geom_ribbon` function from `ggplot2`.
+
+```{r Shading a region of interest, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
+
+x <- seq(from = -3.5, to = 3.5, length.out = 100)
+df_normal <- data.frame(x = x, y = dnorm(x, mean = 0, sd = 1))
+
+p_normal <- ggplot(df_normal, aes(x, y)) +
+  geom_line() +
+  labs(
+    title = "Standard Normal Distribution",
+    y = "Density",
+    x = "Quantile")
+
+p_normal
+
+q60 <- quantile(df_normal$x, 0.6)
+q80 <- quantile(df_normal$x, 0.8)
+
+p_normal +
+  geom_ribbon(
+    data = subset(df_normal, x > q60 & x < q80),
+    aes(ymax = y),
+    ymin = 0,
+    fill = "blue",
+    colour = NA,
+    alpha = 0.5)
+
+```
+
+Please visit [the R Graph Gallery](https://r-graph-gallery.com/index.html "the R Graph Gallery"), the **most extensive compilation of R-generated graphs** on the web, for more comprehensive source of `ggplot` codes. Hundreds of charts are displayed in several sections, always with the reproducible code.
+
+End-of-File\
+Pongsun B.\
+2024-09-19
