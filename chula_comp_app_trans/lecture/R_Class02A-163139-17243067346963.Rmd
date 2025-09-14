@@ -148,11 +148,12 @@ It is also possible to use the `slice()` function from the package `dplyr` to de
 
 ```{r To delete a row of data frame}
 # Read Excel file "play_data.xlsx" with "read_excel"
+library(readxl)
 play_data <- read_excel("./Data/play_data.xlsx")
 # Delete the second row
 play_data[-2,]
 # Delete the 5th to 7th rows 
-play_data[-c(5:7),]
+play_data[-c(4:7),]
 # To remove 1st to 4th rows using the slice() function
 
 ```

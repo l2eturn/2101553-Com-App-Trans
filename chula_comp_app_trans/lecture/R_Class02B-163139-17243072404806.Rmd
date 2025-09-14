@@ -103,9 +103,15 @@ diamonds
 data(diamonds)
 # Plot full data (geom = geometric) RGB = 256*256*256 0~F
 ggplot(diamonds, aes(x, y)) + geom_point(color = "#000000")
+#geom = geometric
 # Pull out outliers
 filter(diamonds, x == 0 | y == 0)
 # Provide multiple arguments to filter() and plot the result
+diamonds_ok <- diamonds %>% filter(x > 0 | y > 0 ) %>% filter(y < 20)
+diamonds_ok
+ggplot(diamonds_ok,aes(x,y)) + geom_point(color = "blue") + geom_abline(slope = 1, color = "red", linewidth = 1, alpha = 0.5)
+#geom_abline --> y = ax + b
+#alpha ความโปร่งแสง
 diamonds_ok <- filter(diamonds, x > 0, y > 0, y < 20)
 ggplot(diamonds_ok, aes(x, y)) +
   geom_point() +
@@ -113,11 +119,14 @@ ggplot(diamonds_ok, aes(x, y)) +
 
 # Practice your filtering skills
 # (1) Finding all the diamonds with equal x and y dimensions.
-
+diamonds_1 <- filter(diamonds,x == y)
+ggplot(diamonds_1,aes(x,y)) + geom_point(color = "blue")
 # (2) A depth between 55 and 70.
-
+ggplot(filter(diamonds,depth >= 55 & depth <= 70),aes(depth,x)) + geom_point(color = "red")
 # (3) A carat smaller than the median carat.
-
+med = median(diamonds$carat)
+diamonds_2 <- filter(diamonds,carat < med)
+ggplot(diamonds_2,aes(carat,x)) + geom_point(color = "red")
 # (4) Cost more than $10,000 per carat.
 
 # (5) Are of good or better quality.
@@ -153,27 +162,32 @@ Typically, transformations will be suggested by your domain knowledge. However, 
 diamonds_ok2 <- mutate(diamonds_ok,
                        sym = x - y,
                        diag = sqrt(x^2 + y^2))
+diamonds_ok2 <- mutate(diamonds_ok2,sys = abs(x-y), diag = sqrt(x^2 + y^2))
 diamonds_ok2
 # Plot diag VS sym
-ggplot(diamonds_ok2, aes(diag, sym)) +
-  stat_bin2d()
+ggplot(diamonds_ok2, aes(diag, sym)) + stat_bin2d()
 # Filter out the outliers
 diamonds_ok3 <- filter(diamonds_ok2, abs(sym) < 0.2)
-ggplot(diamonds_ok3, aes(diag, sym)) +
-  stat_bin2d()
+ggplot(diamonds_ok3, aes(diag, sym)) + stat_bin2d()
 # Plot the histogram of sym
-ggplot(diamonds_ok3, aes(abs(sym))) + 
-  geom_histogram(binwidth = 0.01)
+ggplot(diamonds_ok3, aes(abs(sym))) + geom_histogram(binwidth = 0.01)
 
 # Practice your variable creation skills
 # (1) The approximate volume of the diamond (using x, y, and z).
-
+volumes = diamonds$x * diamonds$z * diamonds$y 
+volumes
+diamonds_4 <- mutate(diamonds,volumes = x*y*z)
+diamonds_4
 # (2) The approximate density of the diamond.
-
+#rho m/v
+diamonds_5 <- mutate(diamonds,density = carat/volumes)
+diamonds_5
 # (3) The price per carat.
-
+diamonds_6 <- mutate(diamonds,price_per_carat = price/carat)
+diamonds_6
+ 
 # Plot the scatter plot between carat and price
-
+ggplot(diamonds_6,aes(price_per_carat,volumes)) + geom_point(color = "blue")
 # (4) Log transformation of carat and price.
 
 # Plot the scatter plot between carat and price (with log)
@@ -200,7 +214,7 @@ We can also supply additional variables to `group_by()` to create groups based o
 
 -   Middle: `mean(x)`, `median(x)`.
 
--   Spread: `sd(x)`, `mad(x)`, `IQR(x)`.
+-   Spread: `sd(x)`, `mad(x)`, `IQR(x)`. mad = median absolute diviation (ใช้ข้อมูลที่มันเบ้มากๆๆๆๆๆๆๆๆๆ)
 
 -   Extremes: `quartile(x)`, `min(x)`, `max(x)`.
 
@@ -214,6 +228,7 @@ Most summary functions have a `na.rm` argument: `na.rm = TRUE` tells the summary
 
 ```{r Group-wise_Summaries, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 # Determine the number of groups of clarity in the diamonds dataset
+diamonds_ok %>% group_by(cut) %>% summarise(num = n(),price_by_cut = mean(price/carat))
 
 # To look at the average price per clarity, we first group by clarity, then summarize
 
@@ -252,10 +267,9 @@ You'll often see a similar pattern whenever you plot number of observations vs. 
 
 ```{r Statistical_Considerations, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 # Include the number of observations in each group, and the upper and lower quartiles in the average price
-
-
-
-
+by_clarity <- diamonds_ok %>% group_by(cut) %>% summarise(num = n(), 
+                                  avgprice_carat = mean(price/carat),
+                                  Q1 = quantile(price,0.25))
 # Print out by_clarity  
 by_clarity
 # Plot by_clarity
