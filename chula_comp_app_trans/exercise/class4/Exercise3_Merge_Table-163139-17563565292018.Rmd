@@ -292,7 +292,7 @@ merge(x = df_1, y = df_2, all.x = TRUE)
 
 As the employee corresponding to `id = 5` (Emma) is on the first data set but not on the second, the corresponding missing values are displayed as `NA`.
 
-### **Right join** 
+### **Right join**
 
 The right join is the opposite of the left join. In this case, the merge **joins all the rows in the second data frame with the corresponding on the first**.
 

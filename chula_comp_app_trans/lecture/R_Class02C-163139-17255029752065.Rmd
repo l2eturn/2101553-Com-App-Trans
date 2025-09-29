@@ -103,10 +103,10 @@ unemp_wide <- read_csv("./Data/unemployment.csv", show_col_types = FALSE)
 unemp_long <- gather(unemp_wide, key = "year", value = "unemp", `2006`:`2015`)
 # Alternatively, we could gather all columns except month
 # Then, arrange by month and remove NA
-unemp_long2 <- 
-unemp_long2
+unemp_long2 <- gather(unemp_wide, key = "year", value = "unemp", -"month") %>% na.omit(unemp_long) %>% arrange("month")
+unemp_long2 
 # Gather with pivot_longer 
-unemp_long3 <- 
+unemp_long3 <- pivot_longer(unemp_wide, names_to = "year", values_to = "unemp", `2006`:`2015`)
 
 # Check if unemp_long2 = unemp_long3
 
@@ -137,7 +137,7 @@ weather_long <- dplyr::tibble(
 # Print out weather
 weather_long
 # Change from long to wide format (Indexed to Cartesian)
-weather_wide <- 
+weather_wide <- spread(weather_long, key = "obs",value ="val" )
 # Spread with pivot_wider
 weather_wide2 <- 
 # Check if weather_wide = weather_wide2
@@ -175,9 +175,9 @@ trt <- dplyr::tibble(
 # Print out trt
 trt
 # to split by the "_" character
-trt2 <- 
+trt2 <-  separate(trt, "var", c("time","treatment"), "_")
 # Spread with pivot_wider
-trt3 <- 
+trt3 <- spread(trt2,"time","val")
 # Check a class of trt3
 
 # Transpose trt3

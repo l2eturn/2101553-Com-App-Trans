@@ -160,7 +160,7 @@ Row filtering can also be **based on multiple conditions** to filter, for instan
 Note that the multiple conditions can be **based on multiple columns**.
 
 | **Logical operator** |                   **Description**                   |
-|:---------------------:|:-----------------------------------------------:|
+|:--------------------:|:---------------------------------------------------:|
 |          &           |              Elementwise logical ‘AND’              |
 |          \|          |              Elementwise logical ‘OR’               |
 |        xor()         | Elementwise exclusive ‘OR’. Equivalent to !(x \| y) |
@@ -276,7 +276,7 @@ Note that in addition to the minus operator (`-`) there is the exclamation opera
 There are several helper functions to select columns based on patterns, such as `contains`, `starts_with`, `ends_with`, `matches` and `num_range`, based on a condition with `where`, based on character vectors such as `any_of` and `all_of` etc. The following table describes the most common functions and their usage.
 
 | **Function** | **Description** |
-|:----------------------------------:|:----------------------------------:|
+|:--:|:--:|
 | `contains("text")` | Selects columns containing the given text (exact match) |
 | `all_of(c("col1", "col2"))` | Selects all columns based on a character vector |
 | `any_of(c("col1", "col2"))` | Selects columns based on a character vector, even if some do not exist |

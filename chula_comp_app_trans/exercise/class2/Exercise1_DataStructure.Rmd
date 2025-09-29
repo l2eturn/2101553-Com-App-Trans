@@ -378,7 +378,7 @@ city <- c(3, 2, 1, 4, 3, 2)
 
 # Convert the data into factor and get it categorized for further analysis
 #factor(city)
-
+city_1 <- factor(city)
 # Change factor labels of the levels 
 city_factor <- factor(city, labels = c("Bangkok","Chiangmai","Songkhla","Khonkean"))
 city_factor

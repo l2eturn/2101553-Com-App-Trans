@@ -197,7 +197,7 @@ stat_score <- list(S1 = c(89, 85, 85, 86, 88, 89, 86, 82, 96, 85,
 
 ```
 
-#### Practice 2: Use `map` 
+#### Practice 2: Use `map`
 
 ```{r map, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 
