@@ -318,25 +318,25 @@ a <- c(x = 3, y = 5, x = 1, x = 4, y = 3)
 a
 
 # Split the vector 'a' into 2 vectors
-
-
+aa <- split(a,f = names(a))
+aa
 my_groups <- c("Group 1", "Group 1", "Group 2", "Group 1", "Group 2")
-
 # Split the vector 'a' using the vecter 'my_groups'
-
-
+aaa <- split(a,f = my_groups)
+aaa
 # New group
 my_groups2 <- c("Type 1", "Type 1", "Type 1", "Type 2", "Type 1")
 
 # Split the vector "a" by two groups
-
+aaaa <- split(a, f = list(my_groups, my_groups2))
+aaaa
 
 # Remove the empty elements and change the separator to ":"
-
+split(a, f = list(my_groups, my_groups2), drop = TRUE, sep = ":")
 
 # Unsplit 'vec_split' to recover the original vector
-
-
+vec_split <- split(a, f = names(a))
+unsplit(vec_split, f = names(a))
 ```
 
 ## Split data frame
@@ -356,13 +356,13 @@ my_df2 <- CO2[sample(1:nrow(CO2), 10), ]
 my_df2
 
 # Use the split function to split the data frame in groups based on the "Treatment" variable
-
-
+aa <- split(my_df2, f = my_df2$Treatment)
+aa
 # Create the split of the sample data frame with Type and Treatment columns.
-
-
+aa2 <- split(my_df2, f = list(my_df2$Type, my_df2$Treatment))
+aa2
 # Recover the original data frame with the unsplit function
-
+unsplit(df_split, f = my_df2$Treatment)
 
 ```
 
@@ -426,16 +426,16 @@ my_sampleX <- -5:5
 range(my_sampleX)
 
 # Cut the range of sample into 2 intervals (categories) with the same length
-
+cut(my_sampleX, breaks = 2)
 
 # Cut the range of sample into 2 intervals: (-6,2] (2,5]
-
+cut(my_sampleX, breaks = c(-6, 2, 5))
 
 # Cut the range of sample into 2 intervals: [-5,2) [2,6)
-
+cut(my_sampleX, breaks = c(-5, 2, 6), right = FALSE)
 
 # Cut the range of sample into 2 intervals: [-5,2] (2,5]
-
+cut(my_sampleX, breaks = c(-5, 2, 5), include.lowest = TRUE)
 
 ```
 
@@ -451,10 +451,13 @@ my_sampleY <- c(12, 1, 25, 12, 65, 2, 6, 17)
 # 0, 3, 12, 15, 20, 80
 # and change the labels of the output factor to 
 # "First", "Second", "Third", "Fourth", "Fifth", respectively
+categorized_data <- cut(my_sampleY,
+                        breaks = c(0, 3, 12, 15, 20, 80),
+                        labels = c("First", "Second", "Third", "Fourth", "Fifth"))
 
 
-# Crate the data frame showing the original values and categorized intervals
-
+# Create the data frame showing the original values and categorized intervals
+data.frame(Original_Value = my_sampleY, Category = categorized_data)
 
 ```
 
