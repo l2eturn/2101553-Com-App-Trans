@@ -69,7 +69,6 @@ my_vec2 <- c("B", "A", NA, NA, "A", "C", "B")
 
 # Count NA values of my_vec2 (if any) 
 table(my_vec2, useNA = "ifany")
-
 # Count NA values of my_vec1 (even if there are none)
 table(my_vec1, useNA = "always")
 
