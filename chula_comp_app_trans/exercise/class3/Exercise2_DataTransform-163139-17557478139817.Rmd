@@ -36,7 +36,7 @@ df_data
 
 # Check the default row names of my_df
 rownames(df_data)
-
+colnames(df_data)
 # Set the row names to my_df with a character vector with elements "Row_X" 
 # Hint: use the "paste" function to concatenate vectors after converting to character.
 rownames(df_data) <- paste("Row_",1:10,sep = '')
@@ -243,31 +243,31 @@ In case you want to subset rows based on a predetermined vector you can use the 
 You can also apply a **conditional subset** with the `subset` function. Note that when using this function you can use the variable names directly. When using the `subset` function with a data frame you can also **specify the columns you want to be returned**, indicating them in the `select` argument.
 
 ```{r Subset rows of data frame, warning=FALSE}
-
+my_df
 my_values <- c(12, 14, 16)
 
 # Select the fourth, sixth and ninth rows of my_df
-
+my_df[c(4,6,9),]
 
 # Subset rows of my_df based on my_values
-
+my_df[(my_df$y %in% my_values),]
 
 # Select the opposite of the above result
-
+my_df[(!(my_df$y) %in% my_values),]
 
 # Values where column z is greater than 5
-
+my_df[my_df$z > 5,]
 
 # All values corresponding to Group 1
-
+my_df[my_df$w == "Group 1",]
 
 # Select all values where 'y' is lower or equal to 14
 # and return only the columns "y" and "w"
-
+subset(my_df,y <= 14, select = c("y","w"))
 
 # Use multiple subset conditions to select samples where
 # 'y' is larger than 6 and the group of the 'w' column is Group 2.
-
+subset(my_df,y > 6 & w == "Group 2", select = c('w'))
 
 ```
 
