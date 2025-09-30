@@ -463,11 +463,14 @@ Additionally, you can **specify positions based on the index** of the column. Fo
 ```{r Position of the new column(s), warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 
 # From 'sample_df2', create new column 'Var4' with the multiplication of 'Var1' and 'Var2' and add it before 'Var2'
-
-
+sample_df3 <- mutate(sample_df2,Var4 = as.numeric(Var1) *as.numeric(Var2), .before = Var2)
+sample_df3
 # Add a new column 'Var4' on the first position (before first column)
 
-
+sample_df4 <- mutate(sample_df3,
+                     Var5 = as.numeric(Var1) + as.numeric(Var3),
+                     .before = 1)
+sample_df4
 ```
 
 ## Keep or drop column(s)
@@ -478,10 +481,15 @@ When you add new columns to a data frame all other **columns are preserved by de
 
 # From 'sample_df2', create new column 'Var4' with the multiplication of 'Var1' and 'Var2'
 # Then, use .keep to retain only used columns
-
-
+sample_df5 <- mutate(sample_df2,
+                     Var4 = as.numeric(Var1)* as.numeric(Var2),
+                     .keep = "used")
+sample_df5
 # Keep only the new column and the columns that haven’t been used 
-
+sample_df6 <-  mutate(sample_df2,
+                     Var4 = as.numeric(Var1)* as.numeric(Var2),
+                     .keep = "unused")
+sample_df6
 
 # Remove all columns from the original data frame
 
@@ -526,11 +534,15 @@ survey_df <- data.frame(group = sample(c("G1", "G2"), 5, replace = TRUE),
 survey_df
 
 # Generate a new data frame containing the average of the numerical variables from the original data frame
-
+summarise(survey_df, mean_x = mean(x), mean_y = mean(y))
 
 # Range of 'x' and 'y'
 
-
+summarise(survey_df,
+          min_x = min(x),
+          max_x = max(x),
+          min_y = min(y),
+          max_y = max(y))
 ```
 
 ## **Summarise data by group with `group_by`**
@@ -555,10 +567,12 @@ survey_df2 <- data.frame(group_1 = sample(c("G1", "G2"), 5, replace = TRUE),
 survey_df2
 
 # Sum of 'x' and sum of 'y' by 'group_1' and 'group_2'
-
+survey_df %>%  group_by(group) %>% summarise(mean_x = mean(x), mean_y = mean(y)) 
 
 # Sum of 'x' and sum of 'y' by 'group_1' and 'group_2' and drop all groups from the result
-
+survey_df2 %>%
+  group_by(group_1, group_2) %>%
+  summarise(sum_x = sum(x), sum_y = sum(y), .groups = "drop")
 
 ```
 
@@ -571,11 +585,11 @@ The `where` function is **highly useful** as it enables the selection of columns
 ```{r Summarise multiple columns, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 
 # Calculate the variance of all columns in 'survey_df' except 'group', and rename the resulting columns using the original column names with the "_var" suffix
-
+summarise(survey_df, across(-group, var, .names = "{.col}_var"))
 
 # Summarise ALL the NUMERIC columns by their median
 
-
+summarise(survey_df, across(where(is.numeric), median))
 ```
 
 End-of-File\
