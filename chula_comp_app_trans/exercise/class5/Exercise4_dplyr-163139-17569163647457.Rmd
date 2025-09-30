@@ -38,11 +38,11 @@ data(band_instruments)
 band_instruments
 
 # Rename the first column 'name' to 'FirstName' and save as 'my_df1'
-
-
+my_df1 <- rename(band_instruments,"FirstName"="name")
+my_df1
 # Rename the second column as 'SecondColumn' and save as 'my_df2'
-
-
+my_df2 <- rename(my_df1,"SecondColumn" = "plays")
+my_df2
 ```
 
 ## Rename multiple columns
@@ -54,13 +54,13 @@ An alternative to the previous is to **use a named vector** with the old names a
 ```{r Rename multiple columns, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 
 # Rename the column 'name' as 'Member' and the column 'plays' as 'Instrument'
-
-
+my_df3 <- rename(my_df2,"Member" = "FirstName","Instrument" = "SecondColumn")
+my_df3
 # Rename 'name' as 'Member name' and 'plays' as 'Instrument' using the following named vector
 new_names <- c("MemberName" = "name", "Instrument" = "plays")
 new_names
-
-
+my_df4 <- rename(band_instruments,new_names)
+my_df4
 ```
 
 ## Rename columns using the `rename_with` function
@@ -85,14 +85,20 @@ By default `.cols = everything()`, which means that the input function is applie
 
 
 # Add a prefix "new_" to the existing columns
-
+my_function <- function(x) {
+  paste0("new_", x)
+}
 
 # Repeat the previous task by using a custom function 'my_function'
 my_function <- function(x) {
   paste0("new_", x)
 }
 
-
+band_instruments_selected <- rename_with(
+  band_instruments,
+  toupper,
+  .cols = contains("nam")
+)
 # Rename all column names containing the string 'nam' to upper case
 
 
@@ -137,20 +143,22 @@ data(women)
 women
 
 # Filter the rows where the height column is greater than 68 and save as 'fil_df1'
-
-
+fil_df1 <- filter(women,height > 68)
+fil_df1
 # Select the rows where the height is equal or lower to the mean of the column and save as 'fil_df2'
-
-
+mean = mean(women$height)
+fil_df2 <- filter(women,height <= mean)
+fil_df2
 # Filter the rows in which the height column takes the value 65, 70 and 72
-
-
+fil_df3 <- filter(women, (height %in% c(65, 70, 72)))
+fil_df3
 # Select the opposite of the filtering made on the previous code, and save as 'fil_df4'
-
+fil_df4 <- filter(women, !(height %in% c(65, 70, 72)))
+fil_df4
 
 # Select the rows that contain a 5 inside the values of 'height', and save as 'fil_df5'
-
-
+fil_df5 <- filter(women,grepl("5", height))
+fil_df5
 ```
 
 ## Filter rows based on multiple conditions
@@ -160,7 +168,7 @@ Row filtering can also be **based on multiple conditions** to filter, for instan
 Note that the multiple conditions can be **based on multiple columns**.
 
 | **Logical operator** |                   **Description**                   |
-|:--------------------:|:---------------------------------------------------:|
+|:--------------------:|:------------------------------------------------:|
 |          &           |              Elementwise logical ‘AND’              |
 |          \|          |              Elementwise logical ‘OR’               |
 |        xor()         | Elementwise exclusive ‘OR’. Equivalent to !(x \| y) |
@@ -168,16 +176,16 @@ Note that the multiple conditions can be **based on multiple columns**.
 ```{r Filter rows based on multiple conditions, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 
 # Select rows whose values in the height column are greater than 65 and lower than 68, and save as 'fil_df6'
-
-
+fil_df6 <- filter(women,height > 65 & height < 68)
+fil_df6
 # Select the rows whose values in height are greater than 65 and whose values in weight are lower or equal to 150
 # Then, save the result as 'fil_df7'
-
-
+fil_df7 <- filter(women,(height > 65 & height < 68 ) & (weight <= 150))
+fil_df7
 # Filter the rows whose values in height area greater than 65 or whose values in weight are greater or equal to 150
 # Then, save the result as 'fil_df8'
-
-
+fil_df8 <- filter(women,(height >= 65 ) & (weight >= 150))
+fil_df8
 ```
 
 ## Filter by row number with `slice`
@@ -189,21 +197,22 @@ In addition, the `slice_head` function allows to **select the first row** of the
 Note that **`slice_sample`** selects rows randomly and **`slice_min`** and **`slice_max`** selects the rows with the lowest or highest values of a variable, respectively.
 
 ```{r Filter by row number with slice, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
-
+data(women)
+women
 # Select the first 3 rows
-
+slice(women,1:3)
 
 # Select the first 3 rows with the 'slice_head' function
-
+slice_head(women,n = 3)
 
 # Select the last 5 rows with the 'slice_tail' function
-
+slice_tail(women,n = 5)
 
 # Select the rows with the top-3 weights
-
+slice_max(women,order_by = weight, n = 3)
 
 # Random select 5 rows with or without replacement
-
+slice_sample(women, n = 5)
 
 ```
 
@@ -237,14 +246,15 @@ my_starwars <- starwars[, 1:6] %>%
 my_starwars
 
 # Select columns named 'name' and 'height'
-
-
+aa <- select(starwars,name,height)
+aa
 # Select the columns from height to skin_color
-
+sel_df2 <- select(my_starwars, height:skin_color)
+sel_df2
 
 # Select the first, the fifth and the sixth column.
-
-
+sel_df3 <- select(starwars,1,5,6)
+sel_df3
 ```
 
 ## Drop columns
@@ -258,16 +268,19 @@ Note that in addition to the minus operator (`-`) there is the exclamation opera
 ```{r Drop columns, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 
 # Select all columns except mass
-
+drop_df1 <- select(my_starwars, -mass)
+drop_df1
 
 # Drop 'height', 'mass' and 'hair_color'
-
+drop_df2 <- select(my_starwars, -mass,-height,-hair_color)
+drop_df2
 
 # Select all columns except the fourth, the fifth and the sixth
-
-
+drop_df3 <- select(my_starwars,-c(4,5,6))
+drop_df3
 # Select ALL EXCEPT "name" using the exclamation operator (!)
-
+drop_df4 <- select(my_starwars, !name)
+drop_df4
 
 ```
 
@@ -276,7 +289,7 @@ Note that in addition to the minus operator (`-`) there is the exclamation opera
 There are several helper functions to select columns based on patterns, such as `contains`, `starts_with`, `ends_with`, `matches` and `num_range`, based on a condition with `where`, based on character vectors such as `any_of` and `all_of` etc. The following table describes the most common functions and their usage.
 
 | **Function** | **Description** |
-|:--:|:--:|
+|:----------------------------------:|:----------------------------------:|
 | `contains("text")` | Selects columns containing the given text (exact match) |
 | `all_of(c("col1", "col2"))` | Selects all columns based on a character vector |
 | `any_of(c("col1", "col2"))` | Selects columns based on a character vector, even if some do not exist |
@@ -320,26 +333,26 @@ If your variables are named with a prefix and a numeric range, such as `x1`, `x2
 The `where` function takes a function that returns `TRUE` or `FALSE` as input and selects columns based on the desired condition. For example, you can select or drop all numeric, character or factor variables using `where(is.numeric)`, `where(is.character)` and `where(is.factor)`, respectively.
 
 ```{r Helper functions, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
-
+my_starwars
 # Select 'name' and all columns containing 'color'
-
+select(name,contains("color"))
 
 # Select the columns based on a vector named column_names using all_of
 column_names <- c("height", "eye_color")
-
+my_starwars %>% select(all_of(column_names))
 
 # Select the columns based on a vector named another_column_names
 another_column_names <- c("mass", "skin_color", "gender", "abc")
-
+my_starwars %>% select(any_of(another_column_names))
 
 # Select the variable 'name' and all variables that start with the letter 'h'
-
+my_starwars %>% select(name, starts_with("h"))
 
 # Select all columns that starts with the letter 'h' or ends with 'r'
-
+my_starwars %>% select(starts_with("h") | ends_with("r"))
 
 # Selects all columns containing the letter 'a' or the letter 't'
-
+my_starwars %>% select(contains("a") | contains("t"))
 
 # my_starwars with new column names
 new_starwars <- my_starwars
@@ -347,11 +360,11 @@ colnames(new_starwars) <- paste0("x", 1:ncol(new_starwars))
 new_starwars
 
 # Select x1, x2 and x3 of new_starwars
-
+colnames(new_starwars) <- paste0("x", 1:ncol(new_starwars))
 
 # Select all character variables of new_starwars
-
-
+new_starwars %>% select(num_range("x", 1:3))
+new_starwars %>% select(where(is.character))
 ```
 
 # Create and modify columns with the `mutate()` function
@@ -387,19 +400,19 @@ Notice that you can **add several columns simultaneously** by passing more expre
 set.seed(8)
 
 sample_df <- data.frame(Var1 = sample(1:50, 5), Var2 = sample(1:50, 5))
-
+sample_df
 # Add new column 'Var3' with the sum of 'Var1' and 'Var2'
-
-
+va3 <- mutate(sample_df,Var3 = Var1+Var2)
+va3
 # Add new column 'Sqrt_Var1' with the square root of 'Var1'
-
-
+va4 <- mutate(va3,Sqrt_Var1 = Var1**0.5)
+va4
 # Create three new columns named 'Var3', 'Var4' and 'Var5'
 # where, Var3 = Var1 + Var2;
 # Var4 = cumulative sum of 'Var1'
 # Var5: if Var1 > Var2, return 'TRUE', else return 'FALSE'
-
-
+va5 <- mutate(va3,va4 = cumsum(Var1),va5 = Var1 > Var2)
+va5
 ```
 
 ## Using `across`
@@ -414,8 +427,15 @@ In such cases where the desired function takes additional arguments, you will ne
 
 # Apply the 'sqrt' function to all columns containing "Var" in their names. 
 # The new columns are named using the previous column name followed by a suffix "_sqrt"
-
-
+sample_df <- sample_df %>%
+  mutate(
+    across(
+      contains("Var"),        # เลือกทุกคอลัมน์ที่มีคำว่า "Var"
+      sqrt,                   # ใช้ sqrt()
+      .names = "{.col}_sqrt"  # ตั้งชื่อใหม่ เช่น Var1_sqrt, Var2_sqrt
+    )
+  )
+sample_df
 # Apply log to all columns of the following data framce but 'Var1'
 sample_df2 <- sample_df %>%
   mutate(Var3 = Var1 + Var2)
@@ -423,7 +443,14 @@ sample_df2
 
 
 # Use paste0 to add "Value: " to all observations in all columns of 'sample_df2' except 'Var1'
-
+sample_df2 <- sample_df2 %>%
+  mutate(
+    across(
+      -Var1,
+      ~ paste0("Value: ", .)
+    )
+  )
+sample_df2
 
 ```
 
