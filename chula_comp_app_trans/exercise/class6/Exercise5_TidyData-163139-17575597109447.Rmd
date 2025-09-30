@@ -91,11 +91,13 @@ head(penguins)
 summary(penguins)
 
 # Use group_by and summarise to create a summary table of the average bird weight by species. Note that we have to use na.rm = TRUE because of the presence of NA values in the variable body_mass_g.
-
+penguin_species_island <- penguins %>%
+  group_by(species, island) %>%
+  summarise(mean_mass = mean(body_mass_g, na.rm = TRUE), .groups = 'drop')
 
 # Repeat the same process with species and island and save the result as the object named "penguin_species_island"
 
-
+print(penguin_species_island)
 ```
 
 While this long tabular structure is useful for coding, it’s harder for you and I to compare across both the “species” and “island” dimensions. This is a situation where a "wide" structure is desirable.
@@ -107,8 +109,9 @@ Let’s take the `penguin_species_island` table and arrange it so that there is 
 Note that this is **NOT** a tidy format! But is it one that is human-readable, and is often how data tables are published in reports.
 
 ```{r pivot_wider, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
-
-
+penguin_wide <- penguin_species_island %>%
+  pivot_wider(names_from = island, values_from = mean_mass)
+print(penguin_wide)
 ```
 
 Note that there are "NA" values introduced into the table. Chinstrap penguins were only recorded on Dream Island, and Gentoo penguins were only on Biscoe Island. "NA" values appear in the columns where there were no birds of that species row.
@@ -118,8 +121,13 @@ Note that there are "NA" values introduced into the table. Chinstrap penguins we
 Now we will pivot the new table back to the original structure. Note that the names of the new variables “island” and “mean_mass” need to be inside quotation marks.
 
 ```{r pivot_longer, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
-
-
+penguin_long <- penguin_wide %>%
+  pivot_longer(
+    cols = c(Biscoe, Dream, Torgersen),
+    names_to = "island",
+    values_to = "mean_mass"
+  )
+print(penguin_long)
 ```
 
 *What do you notice about the structure of the unpivoted table?*
@@ -143,7 +151,20 @@ When you publish your tables, you might want a structure that violates the tidy 
 ```{r Exercise 1, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=80)}
 
 head(gapminder)
+# Filter for the desired countries and years, then select relevant columns
+gapminder_filtered <- gapminder %>%
+  filter(
+    country %in% c("Canada", "United States", "Mexico"),
+    year > 1980
+  ) %>%
+  select(year, country, gdpPercap)
 
+# Pivot to the desired wide format
+gdp_table <- gapminder_filtered %>%
+  pivot_wider(names_from = country, values_from = gdpPercap)
+
+# View the final table
+print(gdp_table)
 # Use the select() function.
 
 
@@ -212,16 +233,36 @@ Get some hint of the structure of the values in the new `key` column by counting
 
 head(who)
 
-# Step 1
+# Make sure the 'who' dataset is loaded
+data(who)
 
-# Step 2
+# Step 1: Gather columns into a key-value pair
+df_who <- who %>%
+  pivot_longer(
+    cols = new_sp_m014:newrel_f65,
+    names_to = "key",
+    values_to = "cases",
+    values_drop_na = TRUE
+  )
 
-# Step 3
+# Step 2: Replace "newrel" with "new_rel" for consistency
+df_who <- df_who %>%
+  mutate(key = str_replace(key, "newrel", "new_rel"))
 
-# Step 4
+# Step 3: Split the 'key' column by underscore
+df_who <- df_who %>%
+  separate(key, c("new", "type", "sexage"), sep = "_")
 
-# Step 5
+# Step 4: Drop redundant columns
+df_who <- df_who %>%
+  select(-new, -iso2, -iso3)
 
+# Step 5: Separate 'sexage' into 'sex' and 'age'
+df_who <- df_who %>%
+  separate(sexage, c("sex", "age"), sep = 1)
+
+# View the final tidy dataset
+head(df_who)
 ```
 
 End-of-File\
