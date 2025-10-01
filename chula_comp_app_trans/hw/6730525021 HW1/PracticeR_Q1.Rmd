@@ -57,6 +57,28 @@ Status = ifelse(are_married, "Married", "Single")
 
 )
 
+## Exam Prepare 1
+
+```{r}
+# ข้อมูลเริ่มต้น
+my_friends <- c("Ann", "Bob", "Carol", "Dan", "Eve", "Frank", "George", "Hank")
+
+#Step 1: สร้าง vector ชื่อ friend_ages เพื่อเก็บอายุของเพื่อน 8 คนข้างต้น ซึ่งมีอายุ 27, 35, 25, 29, 32, 26, 28 และ 31 ปี ตามลำดับ (0.5 คะแนน)
+
+friend_ages <- c(27, 35, 25, 29, 32, 26, 28,31)
+friend_ages
+
+#Step 2: ทำให้แต่ละ element ใน vector ชื่อ friend_ages มี label กำกับเป็นชื่อของเพื่อแต่ละคน (0.5 คะแนน)
+names(friend_ages) <- my_friends
+print(friend_ages)
+
+#Step 3: สร้าง logical vector ชื่อ are_married เพื่อระบุสถานะของเพื่อนทั้ง 6 คน ว่าแต่งงานแล้วหรือยัง โดย Ann, Carol และ Dan แต่งงานแล้ว (0.5 คะแนน)
+
+
+```
+
+## Answer Key
+
 ```{r Question 1}
 # ข้อมูลเริ่มต้น
 my_friends <- c("Ann", "Bob", "Carol", "Dan", "Eve", "Frank", "George", "Hank")
