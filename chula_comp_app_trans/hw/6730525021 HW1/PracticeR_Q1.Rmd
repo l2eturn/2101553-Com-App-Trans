@@ -73,6 +73,11 @@ names(friend_ages) <- my_friends
 print(friend_ages)
 
 #Step 3: สร้าง logical vector ชื่อ are_married เพื่อระบุสถานะของเพื่อนทั้ง 6 คน ว่าแต่งงานแล้วหรือยัง โดย Ann, Carol และ Dan แต่งงานแล้ว (0.5 คะแนน)
+are_married <- c(TRUE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE)
+#Step 4: เขียน 1 คำสั่งเพื่อแสดงว่าเพื่อนคนใดที่ยังไม่ได้แต่งงาน (0.5 คะแนน)
+print(my_friends[!(are_married)])
+
+#Step 5: เขียน 1 คำสั่งเพื่อแสดงทั้งชื่อและอายุของเพื่อนคนที่มีอายุมากกว่าอายุเฉลีย (0.5 คะแนน)
 
 
 ```
@@ -141,5 +146,12 @@ print(mean_data)
 Your name:
 
 Student ID:6730525021
+
+```{r}
+my_friends <- c("Ann", "Bob", "Carol", "Dan", "Eve", "Frank", "George", "Hank")
+
+
+
+```
 
 ==== End-of-File ====
